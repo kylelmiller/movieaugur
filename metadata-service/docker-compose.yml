@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  metadata-service:
+    build: .
+    depends_on:
+      - mongodb
+    environment:
+      - DB_HOST=mongodb
+    entrypoint:
+      - python
+      - metadataservice/entrypoints/grpc_app.py
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./src:/src
+      - ./tests:/tests
+
+  mongodb:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data_container:/data/db
+
+volumes:
+  mongodb_data_container:

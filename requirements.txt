@@ -1,0 +1,1 @@
+-r metadata-service/requirements.txt
