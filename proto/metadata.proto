@@ -11,8 +11,10 @@ message ItemMetadata {
   string title = 2;
   string description = 3;
   string objectType = 4;
-  repeated string categories = 5;
-  repeated string creators = 6;
+  string releaseDate = 5;
+  repeated string categories = 6;
+  repeated string keywords = 7;
+  repeated string creators = 8;
 }
 
 message MetadataResponse {
