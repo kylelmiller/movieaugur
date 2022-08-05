@@ -8,7 +8,8 @@ build: grpc
 	docker-compose build
 
 grpc:
-	python -m grpc_tools.protoc -I../proto --python_out=./src/jobs/collectmetadata --grpc_python_out=./src/jobs/collectmetadata ../proto/metadata.proto
+	python -m grpc_tools.protoc -I../proto --python_out=./src/jobs/collectdata ../proto/metadata.proto
+	python -m grpc_tools.protoc -I../proto --python_out=./src/jobs/collectdata ../proto/user_interaction.proto
 
 up:
 	docker-compose up -d

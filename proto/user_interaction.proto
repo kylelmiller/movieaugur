@@ -1,0 +1,10 @@
+syntax = "proto3";
+package events.userinteraction.v1;
+option java_package = "com.movieaugur.events.userinteraction.v1";
+
+message UserInteraction {
+  string userId = 1;
+  string itemId = 2;
+  string type = 3;
+  int64 timestamp = 4;
+}

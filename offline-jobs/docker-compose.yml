@@ -11,6 +11,7 @@ services:
 #      - .env
 #    environment:
 #      AIRFLOW_HOME: /opt/airflow
+#      TMDB_API_KEY: 
 #    volumes:
 #      - ./src/dags:/opt/airflow/dags
 #      - ./logs:/opt/airflow/logs
