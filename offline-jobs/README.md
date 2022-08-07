@@ -1,7 +1,28 @@
 # Batch Jobs
-
 We need to get data into the system before we can actually 
-do anything useful. I'm using Airflow and some batch jobs to pull 
-movielens reviews as some simple user feedback and metadata from tmdb.
-Movielens has id mappings to tmdb ids. The data is pulled and then 
-published to kafka so it can be picked up by downstream services.
+do anything useful. I'm using Airflow and some batch jobs to pull data
+from external sources and publishing it to Kafka.
+
+## Jobs
+### MovieLens 100k
+This job collects the MovieLens 100k dataset. It converts all of the
+MovieLens ids into TMDB ids, collects the TMDB metadata for all
+of the movies in the 100k dataset, sends the metadata to Kafka and 
+sends the movie/user interactions to Kafka as well.
+
+This job isn't scheduled. It's just run manually once to get the
+interaction and metadata into the system.
+
+### TMDB Popular Movies
+This job hits the TMDB popular movies api, gets the list of movie
+ids, collects the TMDB metadata for those ids and sends the metadata
+to Kafka.
+
+Runs daily to pull the latest popular movies.
+
+### TMDB Popular Series
+This job hits the TMDB popular tv api, gets the list of tv series
+ids, collects the TMDB metadata for those ids and sends the metadata
+to Kafka.
+
+Runs daily to pull the latest popular tv series.

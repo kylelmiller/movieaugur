@@ -5,7 +5,8 @@ import os
 import tempfile
 import zipfile
 from abc import ABC, abstractmethod
-from typing import Generator
+from pandas import DataFrame
+from typing import Callable, Generator
 
 import pandas as pd
 import requests
@@ -15,34 +16,49 @@ from metadata_extractor import AbstractMetadataExtractor
 
 
 class AbstractMetadataSource(ABC):
-    """ """
+    """
+    Manages collecting ids and then returning the metadata for those ids using the metadata extractor.
+    """
+
+    def __init__(self, metadata_extractor: AbstractMetadataExtractor = None):
+        self.metadata_extractor = metadata_extractor
 
     @abstractmethod
     def get_items_metadata(self) -> Generator[ItemMetadata, None, None]:
         """
+        Gets a stream of item metadata from the source of ids
 
+        :return: Generator of item metadata
+        """
+        raise NotImplementedError
 
-        :return:
+    @staticmethod
+    @abstractmethod
+    def _get_url():
+        """
+        Gets the url required to collect the id source data
+
+        :return: The url string
         """
         raise NotImplementedError
 
 
 class AbstractInteractionSource(AbstractMetadataSource):
     """
-    Abstract class source for interactions
+    Manages collecting ids/user interactions and then returning the metadata for those ids using the metadata extractor.
     """
 
     @abstractmethod
-    def get_interactions(self) -> UserInteraction:
+    def get_interactions(self) -> Generator[UserInteraction, None, None]:
         """
+        Gets the user interactions from the source.
 
-
-        :return:
+        :return: Generator of user interactions
         """
         raise NotImplementedError
 
 
-class MovieLensInteractionSource(AbstractInteractionSource):
+class MovieLensInteractionSource(AbstractInteractionSource, ABC):
     """
     Converts MovieLens data using MovieLens ids to TMDB ids
     """
@@ -50,14 +66,15 @@ class MovieLensInteractionSource(AbstractInteractionSource):
     RATING_INTERACTION_THRESHOLD = 3.5
 
     def __init__(self, metadata_extractor: AbstractMetadataExtractor):
-        self.metadata_extractor = metadata_extractor
+        super().__init__(metadata_extractor)
         self.ratings_df, self.movies_df, self.links_df = self._get_data()
 
-    @abstractmethod
-    def _get_url(self):
-        raise NotImplementedError
+    def _get_data(self) -> Generator[DataFrame, None, None]:
+        """
+        Extracts the data from the url payload which in the movielens interactions case is a zip payload with csv files.
 
-    def _get_data(self):
+        :return: Dataframes containing the interaction, movie and movie id translation data
+        """
         filename = self._get_url().split("/")[-1]
         extracted_directory_name = filename[: -len(".zip")]
         base_directory = tempfile.gettempdir()
@@ -77,11 +94,6 @@ class MovieLensInteractionSource(AbstractInteractionSource):
             yield pd.read_csv(os.path.join(full_extracted_path, filename))
 
     def get_items_metadata(self) -> Generator[ItemMetadata, None, None]:
-        """
-        Gets all the metadata associated with the movies in the provided dataset
-
-        :return:
-        """
         df = (
             self.movies_df.set_index("movieId")
             .join(self.links_df[~self.links_df["tmdbId"].isna()].set_index("movieId"), how="inner")
@@ -90,11 +102,6 @@ class MovieLensInteractionSource(AbstractInteractionSource):
         return self.metadata_extractor.get_items_metadata(set(df["tmdbId"]))
 
     def get_interactions(self) -> Generator[UserInteraction, None, None]:
-        """
-        Returns the user/item interactions for the given dataset
-
-        :return:
-        """
         for index, row in (
             self.ratings_df[self.ratings_df["rating"] >= self.RATING_INTERACTION_THRESHOLD]
             .set_index("movieId")
@@ -108,3 +115,24 @@ class MovieLens100kInteractionSource(MovieLensInteractionSource):
     @staticmethod
     def _get_url():
         return "https://files.grouplens.org/datasets/movielens/ml-100k.zip"
+
+
+class TMDBPopularMetadataSource(AbstractMetadataSource, ABC):
+    def __init__(self, api_key, metadata_extractor: AbstractMetadataExtractor, http_request: Callable = requests.get):
+        super().__init__(metadata_extractor)
+        self.data = http_request.get(self._get_url() % api_key).json()
+
+    def get_items_metadata(self) -> Generator[ItemMetadata, None, None]:
+        return self.metadata_extractor.get_items_metadata([str(result["id"]) for result in self.data["results"]])
+
+
+class TMDBPopularMovieMetadataSource(TMDBPopularMetadataSource):
+    @staticmethod
+    def _get_url():
+        return "https://api.themoviedb.org/3/movie/popular?api_key=%s"
+
+
+class TMDBPopularSeriesMetadataSource(TMDBPopularMetadataSource):
+    @staticmethod
+    def _get_url():
+        return "https://api.themoviedb.org/3/tv/popular?api_key=%s"

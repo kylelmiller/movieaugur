@@ -1,1 +1,2 @@
 -r metadata-service/requirements.txt
+-r offline-jobs/requirements.txt

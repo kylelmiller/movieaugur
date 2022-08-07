@@ -18,40 +18,39 @@ class AbstractMetadataExtractor(ABC):
     MAXIMUM_CREATORS = 10
     MAXIMUM_CATEGORIES = 10
 
-    def get_items_metadata(self, ids: Iterable[str]) -> Generator[Dict[str, Any], None, None]:
+    def get_items_metadata(self, item_ids: Iterable[str]) -> Generator[Dict[str, Any], None, None]:
         """
         Given a list of ids get the metadata for those ids
 
-        :param ids: List of ids
+        :param item_ids: List of ids
         :return: Generator of item metadata
         """
-        for id in ids:
-            item_metadata = self._get_item_metadata(id)
+        for item_id in item_ids:
+            item_metadata = self._get_item_metadata(item_id)
             if item_metadata:
                 yield item_metadata
 
     @abstractmethod
-    def _get_item_metadata(self, id: str) -> Optional[ItemMetadata]:
+    def _get_item_metadata(self, item_id: str) -> Optional[ItemMetadata]:
         """
         Given an id, get the item metadata from the underlying source.
 
-        :param id:
+        :param item_id:
         :return:
         """
         raise NotImplementedError
 
 
-class TMDBMovieMetadataExtractor(AbstractMetadataExtractor):
+class TMDBMetadataExtractor(AbstractMetadataExtractor):
     """
-    Class that implements a TMDB movie metadata source
+    Class that extracts TMDB metadata
     """
 
-    TMDB_KEYWORDS_URL = "https://api.themoviedb.org/3/movie/%s/keywords?api_key=%s"
-    TMDB_MOVIE_URL = "https://api.themoviedb.org/3/movie/%s?api_key=%s"
-    TMDB_CAST_URL = "https://api.themoviedb.org/3/movie/%s/credits?api_key=%s"
-
-    def __init__(self, api_key: str, http_request: Callable = requests.get):
+    def __init__(self, api_key: str, asset_url, keyword_url, cast_url, http_request: Callable):
         self.api_key = api_key
+        self.asset_url = asset_url
+        self.keyword_url = keyword_url
+        self.cast_url = cast_url
         self.http_request = http_request
 
     @staticmethod
@@ -59,38 +58,81 @@ class TMDBMovieMetadataExtractor(AbstractMetadataExtractor):
         """
         Gets the keyword from a portion of the TMDB keyword API response.
 
-        :param keyword_data: Keyword portion of the Movie keyword API call
-        :return: List of keyword names
+        :param data: Portion of the Movie keyword API call that requires its names to be extracted
+        :return: List of names
         """
         names = [k["name"] for k in data]
         return names if limit is None else names[:limit]
 
-    def _get_item_metadata(self, id: str) -> Optional[ItemMetadata]:
+    @abstractmethod
+    def _construct_item_metadata(self, asset_data, keyword_data, credits_data) -> ItemMetadata:
+        raise NotImplementedError
+
+    def _get_item_metadata(self, item_id: str) -> Optional[ItemMetadata]:
         """
         Given an item id, return the TMDB movie metadata associated with that id.
 
-        :param id: A tmdb movie id
+        :param item_id: A tmdb movie id
         :return: The items metadata
         """
         with multiprocessing.Pool(3) as pool:
-            movie_response, keyword_response, cast_response = pool.map_async(
+            asset_response, keyword_response, cast_response = pool.map_async(
                 self.http_request,
-                [url % (id, self.api_key) for url in (self.TMDB_MOVIE_URL, self.TMDB_KEYWORDS_URL, self.TMDB_CAST_URL)],
+                [url % (id, self.api_key) for url in (self.asset_url, self.keyword_url, self.cast_url)],
             ).get()
 
-        if not all(response.ok for response in (movie_response, keyword_response, cast_response)):
-            logging.warning("API call for TMDB movie id %s was not successful", id)
+        if not all(response.ok for response in (asset_response, keyword_response, cast_response)):
+            logging.warning("API call for TMDB asset id %s was not successful", id)
             return None
 
-        movie_data = movie_response.json()
+        return self._construct_item_metadata(asset_response.json(), keyword_response.json(), cast_response.json())
 
+
+class TMDBMovieMetadataExtractor(TMDBMetadataExtractor):
+    """
+    Class that implements a TMDB movie metadata source
+    """
+
+    def __init__(self, api_key: str, http_request: Callable = requests.get):
+        super().__init__(
+            api_key,
+            "https://api.themoviedb.org/3/movie/%s?api_key=%s",
+            "https://api.themoviedb.org/3/movie/%s/keywords?api_key=%s",
+            "https://api.themoviedb.org/3/movie/%s/credits?api_key=%s",
+            http_request,
+        )
+
+    def _construct_item_metadata(self, asset_data, keyword_data, credits_data) -> ItemMetadata:
         return ItemMetadata(
-            id=str(id),
-            title=movie_data["title"],
-            description=movie_data.get("overview", ""),
+            id=str(asset_data["id"]),
+            title=asset_data["title"],
+            description=asset_data.get("overview", ""),
             objectType="Movie",
-            releaseDate=movie_data.get("release_date", ""),
-            categories=self._get_names(movie_data.get("genres", []), limit=self.MAXIMUM_CATEGORIES),
-            keywords=self._get_names(keyword_response.json().get("keywords", [])),
-            creators=self._get_names(cast_response.json().get("cast", []), limit=self.MAXIMUM_CREATORS),
+            releaseDate=asset_data.get("release_date", ""),
+            categories=self._get_names(asset_data.get("genres", []), limit=self.MAXIMUM_CATEGORIES),
+            keywords=self._get_names(keyword_data.get("keywords", [])),
+            creators=self._get_names(credits_data.get("cast", []), limit=self.MAXIMUM_CREATORS),
+        )
+
+
+class TMDBSeriesMetadataExtractor(TMDBMetadataExtractor):
+    def __init__(self, api_key: str, http_request: Callable = requests.get):
+        super().__init__(
+            api_key,
+            "https://api.themoviedb.org/3/tv/%s?api_key=%s",
+            "https://api.themoviedb.org/3/tv/%s/keywords?api_key=%s",
+            "https://api.themoviedb.org/3/tv/%s/credits?api_key=%s",
+            http_request,
+        )
+
+    def _construct_item_metadata(self, asset_data, keyword_data, credits_data) -> ItemMetadata:
+        return ItemMetadata(
+            id=str(asset_data["id"]),
+            title=asset_data["title"],
+            description=asset_data.get("overview", ""),
+            objectType="Series",
+            releaseDate=asset_data.get("first_air_date", ""),
+            categories=self._get_names(asset_data.get("genres", []), limit=self.MAXIMUM_CATEGORIES),
+            keywords=self._get_names(keyword_data.get("results", [])),
+            creators=self._get_names(credits_data.get("cast", []), limit=self.MAXIMUM_CREATORS),
         )

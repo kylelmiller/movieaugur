@@ -29,7 +29,9 @@ class TestTMDBMovieMetadataExtractor(TestCase):
         elif "credits" in url:
             return MockResponse(json.dumps({"cast": [{"name": "cast_1"}, {"name": "cast_2"}]}))
 
-        return MockResponse(json.dumps({"title": "test", "genres": [{"name": "genre_1"}, {"name": "genre_2"}]}))
+        return MockResponse(
+            json.dumps({"id": 1, "title": "test", "genres": [{"name": "genre_1"}, {"name": "genre_2"}]})
+        )
 
     def test_get_item_metadata(self):
         extractor = TMDBMovieMetadataExtractor("", self.get_metadata)
