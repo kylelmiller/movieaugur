@@ -9,6 +9,7 @@ build: grpc
 
 grpc:
 	cd metadata-service && make grpc
+	cd offline-jobs && make grpc
 
 up:
 	docker-compose up -d
@@ -19,7 +20,7 @@ down:
 test: e2e-tests
 
 e2e-tests: up
-	docker-compose run --rm --no-deps --entrypoint="pytest api /tests/e2e"
+	docker-compose run --rm --no-deps --entrypoint="python -m unittest api /tests/e2e"
 	docker-compose down --remove-orphans
 
 logs:

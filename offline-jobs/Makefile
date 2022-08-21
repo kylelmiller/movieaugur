@@ -10,6 +10,8 @@ build: grpc
 grpc:
 	python -m grpc_tools.protoc -I../proto --python_out=./src/jobs/collectdata ../proto/metadata.proto
 	python -m grpc_tools.protoc -I../proto --python_out=./src/jobs/collectdata ../proto/user_interaction.proto
+	python -m grpc_tools.protoc -I../proto --python_out=./tests/integration/jobs/collectdata ../proto/metadata.proto
+	python -m grpc_tools.protoc -I../proto --python_out=./tests/integration/jobs/collectdata ../proto/user_interaction.proto
 
 up:
 	docker-compose up -d
@@ -17,7 +19,14 @@ up:
 down:
 	docker-compose down --remove-orphans
 
-test: e2e-tests
+test: unit integration e2e-tests
+
+unit-tests:
+	PYTHONPATH ./tests/unit python unittest ./tests/unit/*
+
+integration-tests: up
+	docker-compose run --rm --no-deps -e PYTHONPATH=/tests/integration -e GRPC_HOST=metadata-service --entrypoint="python -m unittest test_sink test_source" metadata-service
+	docker-compose down --remove-orphans
 
 e2e-tests: up
 	docker-compose run --rm --no-deps -e PYTHONPATH=/tests/e2e -e GRPC_HOST=metadata-service --entrypoint="python -m unittest test_api" metadata-service
@@ -27,8 +36,7 @@ logs:
 	docker-compose logs --tail=25 metadata-service
 
 black:
-	black -l 120 $$(find * -name '*.py')
+	black .
 
 clean: down
-	rm src/metadataservice/entrypoints/metadata*.py
-	rm tests/e2e/metadata*.py
+	find . -name *_pb2.py -exec rm -f {} \;

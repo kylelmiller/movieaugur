@@ -10,8 +10,8 @@ message ItemMetadata {
   string id = 1;
   string title = 2;
   string description = 3;
-  string objectType = 4;
-  string releaseDate = 5;
+  string object_type = 4;
+  string release_date = 5;
   repeated string categories = 6;
   repeated string keywords = 7;
   repeated string creators = 8;

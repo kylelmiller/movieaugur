@@ -27,8 +27,7 @@ logs:
 	docker-compose logs --tail=25 metadata-service
 
 black:
-	black -l 120 $$(find * -name '*.py')
+	black .
 
 clean: down
-	rm src/metadataservice/entrypoints/metadata*.py
-	rm tests/e2e/metadata*.py
+	find . -name *_pb2*.py -exec rm -f {} \;

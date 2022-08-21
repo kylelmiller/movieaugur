@@ -1,7 +1,9 @@
 # app
 grpcio-tools
 pymongo
+requests
 # dev/tests
+confluent-kafka==1.9.0
 mypy==0.961
 pylint==2.14.4
 requests==2.28.1
