@@ -11,7 +11,6 @@ from metadataservice.adapters.repository import AbstractRepository, MongoDBRepos
 
 async def configure_kafka_connect(config):
     while True:
-        await asyncio.sleep(15)
         try:
             # configures the kafka connect connector which writes metadata from a kakfa topic to the mongodb database
             response = requests.post(
@@ -42,6 +41,7 @@ async def configure_kafka_connect(config):
             print(f"Request failed: {response.status_code}")
         except Exception as e:
             print(f"Request failed: {e}")
+        await asyncio.sleep(15)
 
 
 def bootstrap(config) -> AbstractRepository:

@@ -2,7 +2,6 @@
 End to End test cases
 """
 import os
-from argparse import Namespace
 from typing import Any, List
 from unittest import TestCase
 
@@ -10,7 +9,7 @@ from confluent_kafka import DeserializingConsumer
 from confluent_kafka.schema_registry.protobuf import ProtobufDeserializer
 from confluent_kafka.serialization import StringDeserializer
 
-from collect_data import main
+from collect_data import collect_movielens_100k_data, collect_popular_tmdb_movie_data, collect_popular_tmdb_series_data
 from metadata_pb2 import ItemMetadata
 from user_interaction_pb2 import UserInteraction
 
@@ -77,15 +76,8 @@ class EndToEndTestCase(TestCase):
 
         :return:
         """
-        args = Namespace()
-        args.collection_type = "tmdb-popular-movies"
-        args.tmdb_api_key = self.api_key
-        args.kafka_brokers = self.kafka_brokers
-        args.schema_registry = self.schema_registry
-
-        response_code = main(args)
+        collect_popular_tmdb_movie_data(self.api_key, self.kafka_brokers, self.schema_registry)
         self.item_metadata_consumer.subscribe(["metadata"])
-        self.assertEqual(os.EX_OK, response_code)
 
         item_metadata_messages = list(get_messages(self.item_metadata_consumer))
         self.assertEqual(20, len(item_metadata_messages))
@@ -96,15 +88,8 @@ class EndToEndTestCase(TestCase):
 
         :return:
         """
-        args = Namespace()
-        args.collection_type = "tmdb-popular-series"
-        args.tmdb_api_key = self.api_key
-        args.kafka_brokers = self.kafka_brokers
-        args.schema_registry = self.schema_registry
-
-        response_code = main(args)
+        collect_popular_tmdb_series_data("tmdb-popular-series", self.api_key, self.kafka_brokers, self.schema_registry)
         self.item_metadata_consumer.subscribe(["metadata"])
-        self.assertEqual(os.EX_OK, response_code)
 
         item_metadata_messages = list(get_messages(self.item_metadata_consumer))
         self.assertEqual(20, len(item_metadata_messages))
@@ -115,16 +100,9 @@ class EndToEndTestCase(TestCase):
 
         :return:
         """
-        args = Namespace()
-        args.collection_type = "movielens-100k"
-        args.tmdb_api_key = self.api_key
-        args.kafka_brokers = self.kafka_brokers
-        args.schema_registry = self.schema_registry
-
-        response_code = main(args)
+        collect_movielens_100k_data("movielens-100k", self.api_key, self.kafka_brokers, self.schema_registry)
         self.user_interaction_consumer.subscribe(["user-interaction"])
         self.item_metadata_consumer.subscribe(["metadata"])
-        self.assertEqual(os.EX_OK, response_code)
 
         user_interaction_messages = list(get_messages(self.user_interaction_consumer))
         item_metadata_messages = list(get_messages(self.item_metadata_consumer))

@@ -50,57 +50,26 @@ class TestGetMetadata(unittest.TestCase):
         self.kafka_producer.flush()
 
     def get_metadata_from_grpc_service(self, ids: List[str]):
-        return self.grpc_stub.GetMetadata(MetadataRequest(ids=ids), timeout=0.5).metadata
+        return self.grpc_stub.GetMetadata(MetadataRequest(ids=ids), timeout=1.0).metadata
 
     def test_happy_path(self):
-        # self.add_document_to_mongo(
-        #     {
-        #         "_id": "found",
-        #         "title": "title",
-        #         "description": "description",
-        #         "object_type": "Movie",
-        #         "categories": ["action", "comedy"],
-        #         "creators": ["creator_1", "creator_2"],
-        #     }
-        # )
-        self.add_item_metadata(
-            ItemMetadata(
-                id="found",
-                title="title",
-                description="description",
-                object_type="Movie",
-                categories=["action", "comedy"],
-                creators=["creator_1", "creator_2"],
-            )
+        item_metadata = ItemMetadata(
+            id="found",
+            title="title",
+            description="description",
+            object_type="Movie",
+            categories=["action", "comedy"],
+            creators=["creator_1", "creator_2"],
         )
+        self.add_item_metadata(item_metadata)
         time.sleep(5)
-        self.assertEqual(1, len(self.get_metadata_from_grpc_service(["found"])))
+        self.assertEqual([item_metadata], list(self.get_metadata_from_grpc_service(["found"])))
 
     def test_missing_metadata(self):
         self.assertEqual(0, len(self.get_metadata_from_grpc_service(["not_found"])))
 
     def test_two_exists_one_missing(self):
-        # self.add_document_to_mongo(
-        #     {
-        #         "_id": "found_1",
-        #         "title": "title",
-        #         "description": "description",
-        #         "object_type": "Movie",
-        #         "categories": ["action", "comedy"],
-        #         "creators": ["creator_1", "creator_2"],
-        #     }
-        # )
-        # self.add_document_to_mongo(
-        #     {
-        #         "_id": "found_2",
-        #         "title": "title",
-        #         "description": "description",
-        #         "object_type": "Movie",
-        #         "categories": ["action", "comedy"],
-        #         "creators": ["creator_1", "creator_2"],
-        #     }
-        # )
-        self.add_item_metadata(
+        items_metadata = [
             ItemMetadata(
                 id="found_1",
                 title="title",
@@ -108,9 +77,7 @@ class TestGetMetadata(unittest.TestCase):
                 object_type="Movie",
                 categories=["action", "comedy"],
                 creators=["creator_1", "creator_2"],
-            )
-        )
-        self.add_item_metadata(
+            ),
             ItemMetadata(
                 id="found_2",
                 title="title",
@@ -119,9 +86,11 @@ class TestGetMetadata(unittest.TestCase):
                 categories=["action", "comedy"],
                 creators=["creator_1", "creator_2"],
             )
-        )
+        ]
+        for item_metadata in items_metadata:
+            self.add_item_metadata(item_metadata)
         time.sleep(5)
-        self.assertEqual(2, len(self.get_metadata_from_grpc_service(["found_1", "found_2", "not_found"])))
+        self.assertEqual(items_metadata, list(self.get_metadata_from_grpc_service(["found_1", "found_2", "not_found"])))
 
 
 if __name__ == "__main__":

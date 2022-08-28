@@ -1,36 +1,32 @@
 version: '3'
 services:
-#  airflow:
-#    image: apache/airflow:2.3.3-python3.10
-#    entrypoint: ./entrypoint.sh
-#    restart: on-failure
-#    depends_on:
-#      - postgres
-#      - kafka
-#    env_file:
-#      - .env
-#    environment:
-#      AIRFLOW_HOME: /opt/airflow
-#      TMDB_API_KEY: 91bb601e056735bc9f50c23f5d59e4d4
-#    volumes:
-#      - ./src/dags:/opt/airflow/dags
-#      - ./logs:/opt/airflow/logs
-#      - ./src/jobs/:/opt/airflow/jobs
-#    ports:
-#      - "9080:8080"
-#    healthcheck:
-#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
-#      interval: 30s
-#      timeout: 30s
-#      retries: 3
-#  postgres:
-#    image: postgres:11
-#    environment:
-#      - POSTGRES_USER=airflow
-#      - POSTGRES_PASSWORD=airflow
-#      - POSTGRES_DB=airflow
-#    volumes:
-#      - postgres-data:/var/lib/postgresql/data
+  airflow:
+    build: .
+    entrypoint: ./entrypoint.sh
+    restart: on-failure
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      AIRFLOW_HOME: /opt/airflow
+      TMDB_API_KEY:
+    volumes:
+      - ./logs:/opt/airflow/logs
+    ports:
+      - "9080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+  postgres:
+    image: postgres:11
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
   kafka:
     image: confluentinc/cp-kafka:6.2.6
     hostname: kafka
@@ -65,5 +61,5 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
 
-#volumes:
-#  postgres-data:
+volumes:
+  postgres-data:

@@ -7,8 +7,8 @@ from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.protobuf import ProtobufSerializer
 from confluent_kafka.serialization import StringSerializer
 
-from metadata_pb2 import ItemMetadata
-from user_interaction_pb2 import UserInteraction
+from jobs.collectdata.metadata_pb2 import ItemMetadata
+from jobs.collectdata.user_interaction_pb2 import UserInteraction
 
 
 PRODUCER_TIMEOUT = 120

@@ -12,9 +12,9 @@ from typing import Callable, Generator
 
 import pandas as pd
 import requests
-from metadata_pb2 import ItemMetadata
-from user_interaction_pb2 import UserInteraction
-from sources import AbstractMetadataSource
+from jobs.collectdata.metadata_pb2 import ItemMetadata
+from jobs.collectdata.user_interaction_pb2 import UserInteraction
+from jobs.collectdata.sources import AbstractMetadataSource
 
 
 class AbstractMetadataProvider(ABC):

@@ -1,0 +1,15 @@
+FROM python:3.8-slim
+
+WORKDIR /code
+
+COPY requirements.txt /tmp/requirements.txt
+
+COPY requirements.txt /tmp/
+COPY constraints.txt /tmp/
+RUN pip install -r /tmp/requirements.txt -c /tmp/constraints.txt
+
+RUN mkdir -p /jobs
+COPY src/dags/jobs /jobs
+COPY tests/ /tests/
+
+WORKDIR /jobs

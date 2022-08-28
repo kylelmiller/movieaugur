@@ -1,3 +1,6 @@
+apache-airflow
 confluent-kafka
+cryptography
 pandas
-requets
+requests
+virtualenv
