@@ -5,9 +5,11 @@ import asyncio
 import json
 import requests
 
-from pymongo import MongoClient
-from metadataservice.adapters.repository import AbstractRepository, MongoDBRepository
+from redis import Redis
 from requests.exceptions import RequestException
+from popularityservice.adapters.metadata_repository import MetadataServiceMetadataRespository
+from popularityservice.adapters.popularity_repository import RedisPopularityRepository
+from popularityservice.service_layer.popularity_service import PopularityService
 
 
 HEADERS = {"Content-Type": "application/json; charset=utf-8"}
@@ -27,15 +29,14 @@ def is_connector_configured(connector_name: str, config) -> bool:
     return connector_name in response.json()
 
 
-async def configure_kafka_connect(config, object_type: str) -> None:
+async def configure_kafka_connect(config) -> None:
     """
-    Configures kafka connect for a metadata object type
+    Configures kafka connect for the popularity service
 
-    :param config: The metadata service config
-    :param object_type: The object type of the metadata we want to support
+    :param config: The popularity service config
     :return:
     """
-    connector_name = f"{object_type}MetadataServiceSink"
+    connector_name = "popularityServiceSink"
 
     while True:
         try:
@@ -49,18 +50,13 @@ async def configure_kafka_connect(config, object_type: str) -> None:
                     {
                         "name": connector_name,
                         "config": {
-                            "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+                            "connector.class": "io.github.jaredpetersen.kafkaconnectredis.sink.RedisSinkConnector",
                             "tasks.max": 4,
-                            "connection.uri": config.get_mongodb_uri(),
-                            "database": config.get_mongodb_db_name(),
-                            "collection": f"{object_type}-metadata",
-                            "topics": f"{object_type}-metadata",
+                            "redis.hosts": config.get_redis_url(),
+                            "topics": "popularity",
                             "key.converter": "org.apache.kafka.connect.storage.StringConverter",
                             "value.converter": "io.confluent.connect.protobuf.ProtobufConverter",
                             "value.converter.schema.registry.url": config.get_schema_registry_url(),
-                            "transforms": "RenameField",
-                            "transforms.RenameField.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
-                            "transforms.RenameField.renames": "id:_id",
                         },
                     }
                 ),
@@ -74,14 +70,15 @@ async def configure_kafka_connect(config, object_type: str) -> None:
         await asyncio.sleep(15)
 
 
-def bootstrap(config) -> AbstractRepository:
+def bootstrap(config) -> PopularityService:
     """
     Bootstraps the repository
 
     :param config: The configuration
     :return: The configured repository
     """
-    asyncio.run(configure_kafka_connect(config, "movie"))
-    asyncio.run(configure_kafka_connect(config, "series"))
-
-    return MongoDBRepository(MongoClient(config.get_mongodb_uri(), connectTimeoutMS=100).metadataservice)
+    asyncio.run(configure_kafka_connect(config))
+    return PopularityService(
+        RedisPopularityRepository(Redis(host=config.get_redis_hostname(), port=config.get_redis_port())),
+        MetadataServiceMetadataRespository(config.get_metadata_service_url()),
+    )

@@ -3,15 +3,17 @@ Provides user interaction data and item ids from various data sources. The speci
 specific provider by id space, but by separating them we ensure they are independently testable. Providers have ids
 but need to be able to collect the metadata which is what the metadata sources provide.
 """
+#pylint: disable=import-error,no-name-in-module
 import os
 import tempfile
 import zipfile
 from abc import ABC, abstractmethod
-from pandas import DataFrame
-from typing import Callable, Generator
+from typing import Callable, Generator, Iterable
 
 import pandas as pd
 import requests
+from pandas import DataFrame
+from jobs.collectdata.item_score_pb2 import ItemScore, ItemScores
 from jobs.collectdata.metadata_pb2 import ItemMetadata
 from jobs.collectdata.user_interaction_pb2 import UserInteraction
 from jobs.collectdata.sources import AbstractMetadataSource
@@ -23,6 +25,7 @@ class AbstractMetadataProvider(ABC):
     """
 
     def __init__(self, metadata_source: AbstractMetadataSource = None):
+        self.ids = None
         self.metadata_source = metadata_source
 
     @abstractmethod
@@ -99,8 +102,8 @@ class MovieLensProvider(AbstractInteractionProvider, ABC):
         if not os.path.exists(full_extracted_path):
             response = requests.get(self._get_url())
 
-            with open(full_downloaded_path, "wb") as fo:
-                fo.write(response.content)
+            with open(full_downloaded_path, "wb") as file_out:
+                file_out.write(response.content)
             with zipfile.ZipFile(full_downloaded_path, "r") as zip_reference:
                 zip_reference.extractall(base_directory)
 
@@ -112,19 +115,25 @@ class MovieLensProvider(AbstractInteractionProvider, ABC):
         return self.metadata_source.get_items_metadata(set(df["tmdbId"]))
 
     def get_interactions(self) -> Generator[UserInteraction, None, None]:
-        for index, row in (self.ratings_df.join(self.links_df, how="inner")).iterrows():
+        for _, row in (self.ratings_df.join(self.links_df, how="inner")).iterrows():
             yield UserInteraction(
-                user_id=row["userId"], item_id=row["tmdbId"], type="Movie", timestamp=row["timestamp"]
+                user_id=row["userId"], item_id=row["tmdbId"], type="movie", timestamp=row["timestamp"]
             )
 
 
 class MovieLens100kProvider(MovieLensProvider):
+    """
+    Provides the MovieLens 100k dataset
+    """
     @staticmethod
     def _get_url():
         return "https://files.grouplens.org/datasets/movielens/ml-latest-small.zip"
 
 
 class TMDBPopularContentProvider(AbstractMetadataProvider, ABC):
+    """
+    Base class for providing tmdb popularity data.
+    """
     def __init__(self, api_key, metadata_source: AbstractMetadataSource, http_request: Callable = requests.get):
         super().__init__(metadata_source)
         self.data = http_request(self._get_url() % api_key).json()
@@ -133,23 +142,56 @@ class TMDBPopularContentProvider(AbstractMetadataProvider, ABC):
     @abstractmethod
     def _get_url():
         """
-        Gets the url required to collect the id source data
+        Gets the url required to collect the id source data.
 
         :return: The url string
         """
         raise NotImplementedError
 
+    def _get_item_ids(self) -> Iterable[str]:
+        """
+        Gets the item ids for all the popular items.
+
+        :return: List of item ids
+        """
+        if self.ids is None:
+            self.ids = [str(result["id"]) for result in self.data.get("results", [])]
+        return self.ids
+
+    @abstractmethod
+    def get_item_scores(self) -> ItemScores:
+        """
+        Returns the item scores for the popularity.
+
+        :return:
+        """
+        raise NotImplementedError()
+
     def get_items_metadata(self) -> Generator[ItemMetadata, None, None]:
-        return self.metadata_source.get_items_metadata([str(result["id"]) for result in self.data.get("results", [])])
+        return self.metadata_source.get_items_metadata(self._get_item_ids())
 
 
 class TMDBPopularMovieProvider(TMDBPopularContentProvider):
+    """
+    Provides popular movie ids in the tmdb id space.
+    """
+
+    def get_item_scores(self) -> ItemScores:
+        return ItemScores(item_score=[ItemScore(id=id, object_type="movie") for id in self._get_item_ids()])
+
     @staticmethod
     def _get_url():
         return "https://api.themoviedb.org/3/movie/popular?api_key=%s"
 
 
 class TMDBPopularSeriesProvider(TMDBPopularContentProvider):
+    """
+    Provides popular series ids in the tmdb id space.
+    """
+
+    def get_item_scores(self) -> ItemScores:
+        return ItemScores(item_score=[ItemScore(id=id, object_type="series") for id in self._get_item_ids()])
+
     @staticmethod
     def _get_url():
         return "https://api.themoviedb.org/3/tv/popular?api_key=%s"

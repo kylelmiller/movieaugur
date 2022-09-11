@@ -8,10 +8,8 @@ build: grpc
 	docker-compose build
 
 grpc:
-	python -m grpc_tools.protoc -I../proto --python_out=./src/dags/jobs/collectdata ../proto/metadata.proto
-	python -m grpc_tools.protoc -I../proto --python_out=./src/dags/jobs/collectdata ../proto/user_interaction.proto
-	python -m grpc_tools.protoc -I../proto --python_out=./tests/integration/dags/jobs/collectdata ../proto/metadata.proto
-	python -m grpc_tools.protoc -I../proto --python_out=./tests/integration/dags/jobs/collectdata ../proto/user_interaction.proto
+	python -m grpc_tools.protoc -I../proto --python_out=./src/dags/jobs/collectdata ../proto/*.proto
+	python -m grpc_tools.protoc -I../proto --python_out=./tests/integration/dags/jobs/collectdata ../proto/*.proto
 
 up:
 	docker-compose up -d
@@ -22,7 +20,7 @@ down:
 test: unit integration e2e-tests
 
 unit-tests:
-	PYTHONPATH ./tests/unit python unittest ./tests/unit/*
+	PYTHONPATH=./src/dags python -m unittest discover tests/unit/
 
 integration-tests: up
 	docker-compose run --rm --no-deps -e PYTHONPATH=/tests/integration -e GRPC_HOST=metadata-service --entrypoint="python -m unittest test_sink test_source" metadata-service
@@ -38,5 +36,11 @@ logs:
 black:
 	black .
 
+pylint: clean
+	PYTHONPATH=./src/dags pylint src/dags/
+	PYTHONPATH=./src/dags pylint tests/unit/dags
+	PYTHONPATH=./src/dags pylint tests/integration/dags
+	PYTHONPATH=./src/dags pylint tests/e2e/dags
+
 clean: down
-	find . -name *_pb2.py -exec rm -f {} \;
+	find . -name *_pb2*.py -exec rm -f {} \;

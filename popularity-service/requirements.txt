@@ -1,0 +1,7 @@
+eventlet
+flask
+grpcio-tools
+gunicorn
+redis[hiredis]
+requests
+wheel

@@ -3,4 +3,3 @@ confluent-kafka
 cryptography
 pandas
 requests
-virtualenv

@@ -13,16 +13,17 @@ class AbstractRepository(abc.ABC):
     Abstract base class for the repository
     """
 
-    def get(self, item_ids: List[str]) -> List[Dict[str, Any]]:
+    def get(self, item_ids: List[str], object_type: str) -> List[Dict[str, Any]]:
         """
         Given a list of item ids get the metadata associated with those ids
 
         :param item_ids: List of ids
+        :param object_type: The object type of the ids
         :return: List of dictionaries where the dictionary contains the items metadata
         """
-        return self._get(item_ids)
+        return self._get(item_ids, object_type)
 
-    def _get(self, item_ids: List[str]) -> List[Dict[str, Any]]:
+    def _get(self, item_ids: List[str], object_type: str) -> List[Dict[str, Any]]:
         """
         Private get that must be overridden
 
@@ -46,9 +47,9 @@ class MongoDBRepository(AbstractRepository):
         super().__init__()
         self.database = database
 
-    def _get(self, item_ids: List[str]) -> List[Dict[str, Any]]:
+    def _get(self, item_ids: List[str], object_type: str) -> List[Dict[str, Any]]:
         items = []
-        for item in self.database.metadata.find({"_id": {"$in": item_ids}}):
+        for item in self.database[f"{object_type}-metadata"].find({"_id": {"$in": item_ids}}):
             item["id"] = item.pop("_id")
             items.append(item)
         return items

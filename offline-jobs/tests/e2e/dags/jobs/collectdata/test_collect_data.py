@@ -12,6 +12,7 @@ from confluent_kafka.serialization import StringDeserializer
 from collect_data import collect_movielens_100k_data, collect_popular_tmdb_movie_data, collect_popular_tmdb_series_data
 from metadata_pb2 import ItemMetadata
 from user_interaction_pb2 import UserInteraction
+from item_score_pb2 import ItemScore, ItemScores
 
 
 KAFKA_CONSUMER = Any
@@ -69,6 +70,15 @@ class EndToEndTestCase(TestCase):
                 "value.deserializer": ProtobufDeserializer(ItemMetadata, conf={"use.deprecated.format": False}),
             }
         )
+        cls.item_scores_consumer = DeserializingConsumer(
+            {
+                "group.id": "e2e-tests",
+                "default.topic.config": {"auto.offset.reset": "smallest"},
+                "bootstrap.servers": cls.kafka_brokers,
+                "key.deserializer": StringDeserializer(),
+                "value.deserializer": ProtobufDeserializer(ItemScores, conf={"use.deprecated.format": False}),
+            }
+        )
 
     def test_collect_tmdb_popular_movies(self):
         """
@@ -77,10 +87,11 @@ class EndToEndTestCase(TestCase):
         :return:
         """
         collect_popular_tmdb_movie_data(self.api_key, self.kafka_brokers, self.schema_registry)
-        self.item_metadata_consumer.subscribe(["metadata"])
+        self.item_metadata_consumer.subscribe(["movie-metadata"])
+        self.item_scores_consumer.subscribe(["popularity"])
 
-        item_metadata_messages = list(get_messages(self.item_metadata_consumer))
-        self.assertEqual(20, len(item_metadata_messages))
+        self.assertEqual(20, len(list(get_messages(self.item_metadata_consumer))))
+        self.assertEqual(1, len(list(get_messages(self.item_scores_consumer))))
 
     def test_collect_tmdb_popular_series(self):
         """
@@ -89,10 +100,11 @@ class EndToEndTestCase(TestCase):
         :return:
         """
         collect_popular_tmdb_series_data("tmdb-popular-series", self.api_key, self.kafka_brokers, self.schema_registry)
-        self.item_metadata_consumer.subscribe(["metadata"])
+        self.item_metadata_consumer.subscribe(["series-metadata"])
+        self.item_scores_consumer.subscribe(["popularity"])
 
-        item_metadata_messages = list(get_messages(self.item_metadata_consumer))
-        self.assertEqual(20, len(item_metadata_messages))
+        self.assertEqual(20, len(list(get_messages(self.item_metadata_consumer))))
+        self.assertEqual(1, len(list(get_messages(self.item_scores_consumer))))
 
     def test_collect_movielens_100k(self):
         """
@@ -102,7 +114,7 @@ class EndToEndTestCase(TestCase):
         """
         collect_movielens_100k_data("movielens-100k", self.api_key, self.kafka_brokers, self.schema_registry)
         self.user_interaction_consumer.subscribe(["user-interaction"])
-        self.item_metadata_consumer.subscribe(["metadata"])
+        self.item_metadata_consumer.subscribe(["movie-metadata"])
 
         user_interaction_messages = list(get_messages(self.user_interaction_consumer))
         item_metadata_messages = list(get_messages(self.item_metadata_consumer))

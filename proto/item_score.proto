@@ -1,0 +1,13 @@
+syntax = "proto3";
+package itemscores.v1;
+option java_package = "com.movieaugur.itemscores.v1";
+
+message ItemScore {
+  string id = 1;
+  string object_type = 2;
+  float score = 3;
+}
+
+message ItemScores {
+  repeated ItemScore item_scores = 1;
+}

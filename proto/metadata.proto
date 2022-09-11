@@ -4,6 +4,7 @@ option java_package = "com.movieaugur.service.metadata.v1";
 
 message MetadataRequest {
   repeated string ids = 1;
+  string object_type = 2;
 }
 
 message ItemMetadata {
@@ -17,10 +18,10 @@ message ItemMetadata {
   repeated string creators = 8;
 }
 
-message MetadataResponse {
+message ItemsMetadata {
   repeated ItemMetadata metadata = 1;
 }
 
 service Metadata {
-  rpc GetMetadata (MetadataRequest) returns (MetadataResponse);
+  rpc GetMetadata (MetadataRequest) returns (ItemsMetadata);
 }

@@ -1,6 +1,7 @@
 """
 Classes for extracting metadata from an external source.
 """
+#pylint: disable=import-error,no-name-in-module
 import logging
 import multiprocessing
 from abc import ABC, abstractmethod
@@ -128,7 +129,7 @@ class TMDBMovieMetadataSource(TMDBMetadataSource):
             id=str(asset_data["id"]),
             title=asset_data["title"],
             description=asset_data.get("overview", ""),
-            object_type="Movie",
+            object_type="movie",
             release_date=asset_data.get("release_date", ""),
             categories=self._get_names(asset_data.get("genres", []), limit=self.MAXIMUM_CATEGORIES),
             keywords=self._get_names(keyword_data.get("keywords", [])),
@@ -137,6 +138,9 @@ class TMDBMovieMetadataSource(TMDBMetadataSource):
 
 
 class TMDBSeriesMetadataSource(TMDBMetadataSource):
+    """
+    Class that implements a TMDB series metadata source
+    """
     def __init__(self, api_key: str, http_request: Callable = requests.get):
         super().__init__(
             api_key,
@@ -153,7 +157,7 @@ class TMDBSeriesMetadataSource(TMDBMetadataSource):
             id=str(asset_data["id"]),
             title=asset_data["name"],
             description=asset_data.get("overview", ""),
-            object_type="Series",
+            object_type="series",
             release_date=asset_data.get("first_air_date", ""),
             categories=self._get_names(asset_data.get("genres", []), limit=self.MAXIMUM_CATEGORIES),
             keywords=self._get_names(keyword_data.get("results", [])),

@@ -40,33 +40,47 @@ class TestGetMetadata(unittest.TestCase):
 
     def tearDown(self) -> None:
         # Remove all documents from the database
-        self.mongo_database.metadata.delete_many({})
+        for collection_name in self.mongo_database.list_collection_names():
+            self.mongo_database[collection_name].delete_many({})
 
     def add_document_to_mongo(self, document: Dict) -> None:
-        self.mongo_database.metadata.insert_one(document)
+        self.mongo_database[f"{document['object_type']}-metadata"].insert_one(document)
 
     def add_item_metadata(self, item_metadata: ItemMetadata) -> None:
-        self.kafka_producer.produce(topic="metadata", value=item_metadata)
+        self.kafka_producer.produce(topic=f"{item_metadata.object_type}-metadata", value=item_metadata)
         self.kafka_producer.flush()
 
-    def get_metadata_from_grpc_service(self, ids: List[str]):
-        return self.grpc_stub.GetMetadata(MetadataRequest(ids=ids), timeout=1.0).metadata
+    def get_metadata_from_grpc_service(self, object_type: str, ids: List[str]):
+        return self.grpc_stub.GetMetadata(MetadataRequest(object_type=object_type, ids=ids), timeout=1.0).metadata
 
     def test_happy_path(self):
         item_metadata = ItemMetadata(
             id="found",
             title="title",
             description="description",
-            object_type="Movie",
+            object_type="movie",
             categories=["action", "comedy"],
             creators=["creator_1", "creator_2"],
         )
         self.add_item_metadata(item_metadata)
         time.sleep(5)
-        self.assertEqual([item_metadata], list(self.get_metadata_from_grpc_service(["found"])))
+        self.assertEqual([item_metadata], list(self.get_metadata_from_grpc_service("movie", ["found"])))
+
+    def test_object_type_must_match(self):
+        item_metadata = ItemMetadata(
+            id="movie_item",
+            title="title",
+            description="description",
+            object_type="movie",
+            categories=["action", "comedy"],
+            creators=["creator_1", "creator_2"],
+        )
+        self.add_item_metadata(item_metadata)
+        time.sleep(5)
+        self.assertEqual(0, len(self.get_metadata_from_grpc_service("series", ["movie_item"])))
 
     def test_missing_metadata(self):
-        self.assertEqual(0, len(self.get_metadata_from_grpc_service(["not_found"])))
+        self.assertEqual(0, len(self.get_metadata_from_grpc_service("movie", ["not_found"])))
 
     def test_two_exists_one_missing(self):
         items_metadata = [
@@ -74,7 +88,7 @@ class TestGetMetadata(unittest.TestCase):
                 id="found_1",
                 title="title",
                 description="description",
-                object_type="Movie",
+                object_type="movie",
                 categories=["action", "comedy"],
                 creators=["creator_1", "creator_2"],
             ),
@@ -82,15 +96,17 @@ class TestGetMetadata(unittest.TestCase):
                 id="found_2",
                 title="title",
                 description="description",
-                object_type="Movie",
+                object_type="movie",
                 categories=["action", "comedy"],
                 creators=["creator_1", "creator_2"],
-            )
+            ),
         ]
         for item_metadata in items_metadata:
             self.add_item_metadata(item_metadata)
         time.sleep(5)
-        self.assertEqual(items_metadata, list(self.get_metadata_from_grpc_service(["found_1", "found_2", "not_found"])))
+        self.assertEqual(
+            items_metadata, list(self.get_metadata_from_grpc_service("movie", ["found_1", "found_2", "not_found"]))
+        )
 
 
 if __name__ == "__main__":

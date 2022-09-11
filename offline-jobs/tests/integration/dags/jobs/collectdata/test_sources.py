@@ -15,7 +15,7 @@ class TMDBMovieMetadataSourceTestCases(TMDBMetadataSourceTestCases):
         self.assertIsNotNone(self.api_key, msg="TMDB_API_KEY environment variable must be set")
         items_metadata = list(TMDBMovieMetadataSource(self.api_key).get_items_metadata(["361743", "335983"]))
         self.assertEqual(
-            ["361743", "Top Gun: Maverick", "Movie", "2022-05-24"],
+            ["361743", "Top Gun: Maverick", "movie", "2022-05-24"],
             [
                 items_metadata[0].id,
                 items_metadata[0].title,
@@ -24,7 +24,7 @@ class TMDBMovieMetadataSourceTestCases(TMDBMetadataSourceTestCases):
             ],
         )
         self.assertEqual(
-            ["335983", "Venom", "Movie", "2018-09-28"],
+            ["335983", "Venom", "movie", "2018-09-28"],
             [
                 items_metadata[1].id,
                 items_metadata[1].title,
@@ -46,7 +46,7 @@ class TMDBSeriesMetadataSourceTestCases(TMDBMetadataSourceTestCases):
         self.assertIsNotNone(self.api_key, msg="TMDB_API_KEY environment variable must be set")
         items_metadata = list(TMDBSeriesMetadataSource(self.api_key).get_items_metadata(["1399", "1398"]))
         self.assertEqual(
-            ["1399", "Game of Thrones", "Series", "2011-04-17"],
+            ["1399", "Game of Thrones", "series", "2011-04-17"],
             [
                 items_metadata[0].id,
                 items_metadata[0].title,
@@ -55,7 +55,7 @@ class TMDBSeriesMetadataSourceTestCases(TMDBMetadataSourceTestCases):
             ],
         )
         self.assertEqual(
-            ["1398", "The Sopranos", "Series", "1999-01-10"],
+            ["1398", "The Sopranos", "series", "1999-01-10"],
             [
                 items_metadata[1].id,
                 items_metadata[1].title,

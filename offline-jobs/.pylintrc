@@ -1,0 +1,24 @@
+[DESIGN]
+
+# Maximum number of method arguments
+max-args=7
+
+[FORMAT]
+
+# Maximum number of characters on a single line.
+max-line-length=120
+
+min-public-methods=1
+
+
+[BASIC]
+
+# Good variable names which should always be accepted, separated by a comma.
+good-names=i,
+           j,
+           k,
+           ex,
+           Run,
+           _,
+           logger,
+           df,

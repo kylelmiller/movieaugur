@@ -1,11 +1,16 @@
+"""
+Unit tests for data sources
+"""
+#pylint: disable=import-error,no-name-in-module
 import json
 from unittest import TestCase
 from typing import Any
 
-from sources import TMDBMovieMetadataSource
-from metadata_pb2 import ItemMetadata
+from jobs.collectdata.sources import TMDBMovieMetadataSource
+from jobs.collectdata.metadata_pb2 import ItemMetadata
 
 
+#pylint: disable=invalid-name
 class MockResponse:
     """
     Mock requests response
@@ -16,6 +21,11 @@ class MockResponse:
         self.ok = ok
 
     def json(self) -> Any:
+        """
+        Returns the json parsed content
+
+        :return:
+        """
         return json.loads(self.content)
 
 
@@ -34,12 +44,12 @@ class TestTMDBMovieMetadataSource(TestCase):
         )
 
     def test_get_item_metadata(self):
-        source = TMDBMovieMetadataSource("", self.get_metadata)
+        source = TMDBMovieMetadataSource("api_key", self.get_metadata)
         self.assertEqual(
             ItemMetadata(
                 id="1",
                 title="test",
-                object_type="Movie",
+                object_type="movie",
                 categories=["genre_1", "genre_2"],
                 keywords=["keyword_1", "keyword_2"],
                 creators=["cast_1", "cast_2"],

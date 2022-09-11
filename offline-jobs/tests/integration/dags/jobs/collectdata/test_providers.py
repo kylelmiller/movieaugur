@@ -10,7 +10,7 @@ from metadata_pb2 import ItemMetadata
 class TestMetadataSource(AbstractMetadataSource):
     def _get_item_metadata(self, id):
         return ItemMetadata(
-            id=id, title="test", object_type="Movie", categories=["Drama", "Comedy"], creators=["Test", "Test"]
+            id=id, title="test", object_type="movie", categories=["Drama", "Comedy"], creators=["Test", "Test"]
         )
 
 
