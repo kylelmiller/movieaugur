@@ -1,7 +1,9 @@
 """The popularity repository"""
-#pylint: disable=import-error,no-name-in-module
+# pylint: disable=import-error,no-name-in-module
 from abc import ABC
 from typing import Optional
+
+from google.protobuf.json_format import Parse
 
 from popularityservice.item_score_pb2 import ItemScores
 
@@ -30,4 +32,7 @@ class RedisPopularityRepository(AbstractPopularityRepository):
         self.redis_client = redis_client
 
     def get(self, object_type: str) -> Optional[ItemScores]:
-        return self.redis_client.get(f"popular-{object_type}")
+        cached_scores = self.redis_client.get(f"popular-{object_type}")
+        if cached_scores is None:
+            return None
+        return Parse(cached_scores, ItemScores())

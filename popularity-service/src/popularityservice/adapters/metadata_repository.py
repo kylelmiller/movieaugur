@@ -1,5 +1,5 @@
 """The metadata repository"""
-#pylint: disable=import-error,no-name-in-module
+# pylint: disable=import-error,no-name-in-module
 from abc import ABC
 from typing import List, Optional
 
@@ -33,4 +33,4 @@ class MetadataServiceMetadataRespository(AbstractMetadataRepository):
         self.grpc_stub = MetadataStub(insecure_channel(hostname))
 
     def get(self, item_ids: List[str], object_type: str) -> Optional[ItemsMetadata]:
-        return self.grpc_stub.GetMetadata(MetadataRequest(item_ids=item_ids, object_type=type), timeout=1.0)
+        return self.grpc_stub.GetMetadata(MetadataRequest(ids=item_ids, object_type=object_type), timeout=1.0)

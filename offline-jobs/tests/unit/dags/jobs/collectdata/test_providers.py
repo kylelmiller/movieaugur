@@ -1,11 +1,12 @@
 """
 Unit tests for provider data sources
 """
-#pylint: disable=import-error,no-name-in-module
+# pylint: disable=import-error,no-name-in-module
 import json
 from unittest import TestCase
 from typing import Any
 
+from jobs.collectdata.item_score_pb2 import ItemScore, ItemScores
 from jobs.collectdata.user_interaction_pb2 import UserInteraction
 from jobs.collectdata.metadata_pb2 import ItemMetadata
 from jobs.collectdata.providers import MovieLens100kProvider, TMDBPopularMovieProvider, TMDBPopularSeriesProvider
@@ -25,7 +26,7 @@ class MockResponse:
     Mock requests response
     """
 
-    #pylint: disable=invalid-name
+    # pylint: disable=invalid-name
     def __init__(self, content: str, ok: bool = True):
         self.content = content
         self.ok = ok
@@ -39,7 +40,7 @@ class MockResponse:
         return json.loads(self.content)
 
 
-#pylint: disable=unused-argument
+# pylint: disable=unused-argument
 def get_ids(url):
     """
     Test http request mock
@@ -54,6 +55,7 @@ class MovieLens100kProviderTests(TestCase):
     """
     Test case for the movie lens 100k provider
     """
+
     class TestMovieLensProvider(MovieLens100kProvider):
         """
         Test MovieLens Interaction source which overrides calls to external dependencies
@@ -98,6 +100,11 @@ class MovieLens100kProviderTests(TestCase):
             return (DataFrame(data_set) for data_set in (self.data_sets))
 
     def test_get_interactions_base_case(self):
+        """
+        Tests the the provider can return interactions.
+
+        :return:
+        """
         source = MovieLens100kProviderTests.TestMovieLensProvider()
         self.assertEqual(
             [
@@ -108,6 +115,11 @@ class MovieLens100kProviderTests(TestCase):
         )
 
     def test_get_metadata_base_case(self):
+        """
+        Tests that the provider can properly return the metadata for the items it has interactions for.
+
+        :return:
+        """
         source = MovieLens100kProviderTests.TestMovieLensProvider()
         self.assertCountEqual(
             [
@@ -126,8 +138,20 @@ class MovieLens100kProviderTests(TestCase):
 
 
 class TMDBPopularMovieMetadataProviderTests(TestCase):
+    """
+    Tests the tmdb popular movie metadata provider
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.provider = TMDBPopularMovieProvider("api_key", TestMetadataSource(), get_ids)
+
     def test_get_items_metadata(self):
-        provider = TMDBPopularMovieProvider("api_key", TestMetadataSource(), get_ids)
+        """
+        Tests that the popular movie metadata provider can return the metadata for the popular content
+
+        :return:
+        """
         self.assertEqual(
             [
                 ItemMetadata(
@@ -137,13 +161,27 @@ class TMDBPopularMovieMetadataProviderTests(TestCase):
                     id="1", title="test", object_type="movie", categories=["Drama", "Comedy"], creators=["Test", "Test"]
                 ),
             ],
-            list(provider.get_items_metadata()),
+            list(self.provider.get_items_metadata()),
+        )
+
+    def test_get_item_scores(self):
+        """
+        Test that the popularity provider can generate item scores.
+
+        :return:
+        """
+        self.assertEqual(
+            ItemScores(item_scores=[ItemScore(id="0", object_type="movie"), ItemScore(id="1", object_type="movie")]),
+            self.provider.get_item_scores(),
         )
 
 
 class TMDBPopularSeriesMetadataProviderTests(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.provider = TMDBPopularSeriesProvider("", TestMetadataSource(), get_ids)
+
     def test_get_items_metadata(self):
-        provider = TMDBPopularSeriesProvider("", TestMetadataSource(), get_ids)
         self.assertEqual(
             [
                 ItemMetadata(
@@ -153,5 +191,16 @@ class TMDBPopularSeriesMetadataProviderTests(TestCase):
                     id="1", title="test", object_type="movie", categories=["Drama", "Comedy"], creators=["Test", "Test"]
                 ),
             ],
-            list(provider.get_items_metadata()),
+            list(self.provider.get_items_metadata()),
+        )
+
+    def test_get_item_scores(self):
+        """
+        Test that the popularity provider can generate item scores.
+
+        :return:
+        """
+        self.assertEqual(
+            ItemScores(item_scores=[ItemScore(id="0", object_type="series"), ItemScore(id="1", object_type="series")]),
+            self.provider.get_item_scores(),
         )

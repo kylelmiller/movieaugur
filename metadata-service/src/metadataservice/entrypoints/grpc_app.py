@@ -8,8 +8,8 @@ from concurrent import futures
 from metadataservice import config
 from metadataservice.bootstrap import bootstrap
 from metadataservice.adapters.repository import AbstractRepository
-from metadata_pb2 import ItemMetadata, ItemsMetadata, MetadataRequest
-from metadata_pb2_grpc import MetadataServicer, add_MetadataServicer_to_server
+from metadataservice.entrypoints.metadata_pb2 import ItemMetadata, ItemsMetadata, MetadataRequest
+from metadataservice.entrypoints.metadata_pb2_grpc import MetadataServicer, add_MetadataServicer_to_server
 
 
 class MetadataService(MetadataServicer):

@@ -1,7 +1,6 @@
-eventlet
 flask
 grpcio-tools
-gunicorn
-redis[hiredis]
+gunicorn[eventlet]
+redis
 requests
 wheel

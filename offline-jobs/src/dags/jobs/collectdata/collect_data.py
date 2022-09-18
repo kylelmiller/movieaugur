@@ -66,7 +66,7 @@ def collect_movielens_100k_data(tmdb_api_key: str, kafka_brokers: str, schema_re
     """
     provider = MovieLens100kProvider(TMDBMovieMetadataSource(tmdb_api_key))
     # Write the collect item metadata to kafka
-    with KafkaItemMetadataSink(kafka_brokers, schema_registry, "movie-metadata") as sink:
+    with KafkaItemMetadataSink(kafka_brokers, schema_registry) as sink:
         run_metadata_job(provider, sink)
     # write the interaction data to kafka
     with KafkaUserInteractionSink(kafka_brokers, schema_registry) as sink:
@@ -85,7 +85,7 @@ def collect_popular_tmdb_movie_data(tmdb_api_key: str, kafka_brokers: str, schem
     """
     provider = TMDBPopularMovieProvider(tmdb_api_key, TMDBMovieMetadataSource(tmdb_api_key))
     # Write the collect item metadata to kafka
-    with KafkaItemMetadataSink(kafka_brokers, schema_registry, "movie-metadata") as sink:
+    with KafkaItemMetadataSink(kafka_brokers, schema_registry) as sink:
         run_metadata_job(provider, sink)
 
     with KafkaPopularitySink(kafka_brokers, schema_registry, "movie") as sink:
@@ -104,7 +104,7 @@ def collect_popular_tmdb_series_data(tmdb_api_key: str, kafka_brokers: str, sche
     """
     provider = TMDBPopularSeriesProvider(tmdb_api_key, TMDBSeriesMetadataSource(tmdb_api_key))
     # Write the collect item metadata to kafka
-    with KafkaItemMetadataSink(kafka_brokers, schema_registry, "series-metadata") as sink:
+    with KafkaItemMetadataSink(kafka_brokers, schema_registry) as sink:
         run_metadata_job(provider, sink)
 
     with KafkaPopularitySink(kafka_brokers, schema_registry, "series") as sink:

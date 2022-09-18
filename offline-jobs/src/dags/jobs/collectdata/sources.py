@@ -1,7 +1,7 @@
 """
 Classes for extracting metadata from an external source.
 """
-#pylint: disable=import-error,no-name-in-module
+# pylint: disable=import-error,no-name-in-module
 import logging
 import multiprocessing
 from abc import ABC, abstractmethod
@@ -141,6 +141,7 @@ class TMDBSeriesMetadataSource(TMDBMetadataSource):
     """
     Class that implements a TMDB series metadata source
     """
+
     def __init__(self, api_key: str, http_request: Callable = requests.get):
         super().__init__(
             api_key,

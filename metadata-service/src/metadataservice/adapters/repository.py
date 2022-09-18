@@ -49,7 +49,7 @@ class MongoDBRepository(AbstractRepository):
 
     def _get(self, item_ids: List[str], object_type: str) -> List[Dict[str, Any]]:
         items = []
-        for item in self.database[f"{object_type}-metadata"].find({"_id": {"$in": item_ids}}):
-            item["id"] = item.pop("_id")
+        for item in self.database["metadata"].find({"id": {"$in": item_ids}, "object_type": object_type}):
+            del item["_id"]
             items.append(item)
         return items

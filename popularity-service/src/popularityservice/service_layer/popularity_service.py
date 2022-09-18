@@ -1,5 +1,5 @@
 """Service for the popularity business logic"""
-#pylint: disable=import-error,no-name-in-module
+# pylint: disable=import-error,no-name-in-module
 from typing import Optional
 
 from popularityservice.adapters.metadata_repository import AbstractMetadataRepository

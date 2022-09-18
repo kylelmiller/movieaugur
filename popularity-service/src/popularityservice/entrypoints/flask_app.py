@@ -1,6 +1,7 @@
 """The Flask entrypoint"""
+import logging
 from flask import Flask
-from google.protobuf.json_format import MessageToJson
+from google.protobuf.json_format import MessageToDict
 
 from popularityservice import bootstrap, config
 
@@ -19,4 +20,15 @@ def get_popularity_endpoint(object_type: str):
     items_metadata = popularity_service.get_popularity(object_type)
     if not items_metadata:
         return "not found", 404
-    return MessageToJson(items_metadata.metadata), 200
+    return [MessageToDict(metadata, preserving_proto_field_name=True) for metadata in items_metadata.metadata], 200
+
+
+if __name__ == "__main__":
+    # run directly as a flask application
+    app.run(debug=True, port=5015)
+else:
+    # run through gunicorn
+    GUNICORN_LOGGER = logging.getLogger("gunicorn.error")
+    app.logger.handlers = GUNICORN_LOGGER.handlers
+    # pylint: disable=no-member
+    app.logger.setLevel(GUNICORN_LOGGER.level)

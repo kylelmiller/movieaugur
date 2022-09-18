@@ -43,18 +43,18 @@ class TestGetMetadata(unittest.TestCase):
         for collection_name in self.mongo_database.list_collection_names():
             self.mongo_database[collection_name].delete_many({})
 
-    def add_document_to_mongo(self, document: Dict) -> None:
-        self.mongo_database[f"{document['object_type']}-metadata"].insert_one(document)
-
     def add_item_metadata(self, item_metadata: ItemMetadata) -> None:
-        self.kafka_producer.produce(topic=f"{item_metadata.object_type}-metadata", value=item_metadata)
+        self.kafka_producer.produce(
+            topic=f"metadata", key=f"#ID#{item_metadata.id}#TYPE#{item_metadata.object_type}", value=item_metadata
+        )
+        self.kafka_producer.poll(0)
         self.kafka_producer.flush()
 
     def get_metadata_from_grpc_service(self, object_type: str, ids: List[str]):
         return self.grpc_stub.GetMetadata(MetadataRequest(object_type=object_type, ids=ids), timeout=1.0).metadata
 
     def test_happy_path(self):
-        item_metadata = ItemMetadata(
+        movie_item_metadata = ItemMetadata(
             id="found",
             title="title",
             description="description",
@@ -62,9 +62,21 @@ class TestGetMetadata(unittest.TestCase):
             categories=["action", "comedy"],
             creators=["creator_1", "creator_2"],
         )
-        self.add_item_metadata(item_metadata)
+        self.add_item_metadata(movie_item_metadata)
+
+        series_item_metadata = ItemMetadata(
+            id="found",
+            title="title",
+            description="description",
+            object_type="series",
+            categories=["action", "comedy"],
+            creators=["creator_1", "creator_2"],
+        )
+        self.add_item_metadata(series_item_metadata)
+
         time.sleep(5)
-        self.assertEqual([item_metadata], list(self.get_metadata_from_grpc_service("movie", ["found"])))
+        self.assertEqual([movie_item_metadata], list(self.get_metadata_from_grpc_service("movie", ["found"])))
+        self.assertEqual([series_item_metadata], list(self.get_metadata_from_grpc_service("series", ["found"])))
 
     def test_object_type_must_match(self):
         item_metadata = ItemMetadata(

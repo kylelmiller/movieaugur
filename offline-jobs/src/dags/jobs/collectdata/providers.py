@@ -3,7 +3,7 @@ Provides user interaction data and item ids from various data sources. The speci
 specific provider by id space, but by separating them we ensure they are independently testable. Providers have ids
 but need to be able to collect the metadata which is what the metadata sources provide.
 """
-#pylint: disable=import-error,no-name-in-module
+# pylint: disable=import-error,no-name-in-module
 import os
 import tempfile
 import zipfile
@@ -125,6 +125,7 @@ class MovieLens100kProvider(MovieLensProvider):
     """
     Provides the MovieLens 100k dataset
     """
+
     @staticmethod
     def _get_url():
         return "https://files.grouplens.org/datasets/movielens/ml-latest-small.zip"
@@ -134,6 +135,7 @@ class TMDBPopularContentProvider(AbstractMetadataProvider, ABC):
     """
     Base class for providing tmdb popularity data.
     """
+
     def __init__(self, api_key, metadata_source: AbstractMetadataSource, http_request: Callable = requests.get):
         super().__init__(metadata_source)
         self.data = http_request(self._get_url() % api_key).json()
@@ -177,7 +179,7 @@ class TMDBPopularMovieProvider(TMDBPopularContentProvider):
     """
 
     def get_item_scores(self) -> ItemScores:
-        return ItemScores(item_score=[ItemScore(id=id, object_type="movie") for id in self._get_item_ids()])
+        return ItemScores(item_scores=[ItemScore(id=id, object_type="movie") for id in self._get_item_ids()])
 
     @staticmethod
     def _get_url():
@@ -190,7 +192,7 @@ class TMDBPopularSeriesProvider(TMDBPopularContentProvider):
     """
 
     def get_item_scores(self) -> ItemScores:
-        return ItemScores(item_score=[ItemScore(id=id, object_type="series") for id in self._get_item_ids()])
+        return ItemScores(item_scores=[ItemScore(id=id, object_type="series") for id in self._get_item_ids()])
 
     @staticmethod
     def _get_url():

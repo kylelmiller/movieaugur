@@ -25,7 +25,7 @@ def is_connector_configured(connector_name: str, config) -> bool:
     """
     response = requests.get(f"{config.get_kafka_connect_url()}/connectors", headers=HEADERS)
     if not response.ok:
-        raise Exception(f"Request failed: {response.status_code}: {response}")
+        raise RequestException(f"Request failed: {response.status_code}: {response}")
     return connector_name in response.json()
 
 
@@ -50,21 +50,22 @@ async def configure_kafka_connect(config) -> None:
                     {
                         "name": connector_name,
                         "config": {
-                            "connector.class": "io.github.jaredpetersen.kafkaconnectredis.sink.RedisSinkConnector",
+                            "connector.class": "com.github.jcustenborder.kafka.connect.redis.RedisSinkConnector",
                             "tasks.max": 4,
                             "redis.hosts": config.get_redis_url(),
+                            "redis.database": 0,
                             "topics": "popularity",
                             "key.converter": "org.apache.kafka.connect.storage.StringConverter",
-                            "value.converter": "io.confluent.connect.protobuf.ProtobufConverter",
-                            "value.converter.schema.registry.url": config.get_schema_registry_url(),
+                            "value.converter": "org.apache.kafka.connect.storage.StringConverter",
                         },
                     }
                 ),
                 headers=HEADERS,
             )
             if response.ok:
+                print(f"{connector_name} created")
                 return
-            print(f"Request failed: {response.status_code}: {response}")
+            print(f"Request failed: {response.status_code}: {response.json()['message']}")
         except RequestException as ex:
             print(f"Request failed: {ex}")
         await asyncio.sleep(15)

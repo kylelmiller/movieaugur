@@ -1,5 +1,5 @@
 """Unit tests for the popularity service layer"""
-#pylint: disable=import-error,no-name-in-module,unused-argument
+# pylint: disable=import-error,no-name-in-module,unused-argument
 from unittest import TestCase
 from typing import Dict, List, Optional
 
@@ -14,6 +14,7 @@ class TestMetadataRespository(AbstractMetadataRepository):
     """
     Test implementation of the metadata repository
     """
+
     def __init__(self, metadata: Dict[str, ItemsMetadata] = None):
         self.metadata = metadata or {}
 
@@ -32,6 +33,7 @@ class TestPopularityRepository(AbstractPopularityRepository):
     """
     Test implementation of the popularity repository
     """
+
     def __init__(self, popularity: Dict[str, ItemScores] = None):
         self.popularity = popularity or {}
 
