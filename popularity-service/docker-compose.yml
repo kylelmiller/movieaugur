@@ -2,6 +2,7 @@ version: "3"
 services:
   popularity-service:
     build: .
+    image: popularity-service
     depends_on:
       - redis
       - metadata-service
@@ -21,6 +22,7 @@ services:
       - "6379:6379"
   metadata-service:
     build: ../metadata-service
+    image: metadata-service
     depends_on:
       - mongodb
       - kafka-connect
@@ -40,6 +42,7 @@ services:
       - mongodb_data_container:/data/db
   kafka-connect:
     build: ../kafka-connect
+    image: kafka-connect
     depends_on:
       - kafka
       - schema-registry

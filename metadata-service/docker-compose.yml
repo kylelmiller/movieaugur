@@ -2,6 +2,7 @@ version: "3"
 services:
   metadata-service:
     build: .
+    image: metadata-service
     depends_on:
       - mongodb
       - kafka-connect

@@ -2,6 +2,7 @@ version: '3'
 services:
   airflow:
     build: .
+    image: airflow
     entrypoint: ./entrypoint.sh
     restart: on-failure
     depends_on:

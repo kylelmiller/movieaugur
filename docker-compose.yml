@@ -1,19 +1,43 @@
 version: "3"
-
 services:
+  nginx:
+    build: api-gy
+    image: api-gy
+    depends_on:
+      - popularity-service
+    ports:
+      - "8080:80"
+  popularity-service:
+    build: popularity-service
+    image: popularity-service
+    depends_on:
+      - redis
+      - metadata-service
+      - kafka-connect
+    ports:
+      - "5015:5015"
+    entrypoint:
+      - /opt/venv/bin/python
+      - -m
+      - gunicorn
+      - popularityservice.entrypoints.wsgi:app
+    environment:
+      GUNICORN_CMD_ARGS: -b 0.0.0.0:5015 --workers 1 --threads 4 --log-level info --timeout 600
+  redis:
+    image: redis:6.2.6 # port 6379
+    ports:
+      - "6379:6379"
   metadata-service:
     build: metadata-service
+    image: metadata-service
     depends_on:
       - mongodb
-    environment:
-      - DB_HOST=mongodb
+      - kafka-connect
     entrypoint:
       - python
       - metadataservice/entrypoints/grpc_app.py
     ports:
       - "5005:5005"
-    volumes:
-      - ./metadata-service/src:/src
   mongodb:
     image: mongo:5.0.10
     environment:
@@ -25,6 +49,7 @@ services:
       - mongodb_data_container:/data/db
   kafka-connect:
     build: kafka-connect
+    image: kafka-connect
     depends_on:
       - kafka
       - schema-registry
