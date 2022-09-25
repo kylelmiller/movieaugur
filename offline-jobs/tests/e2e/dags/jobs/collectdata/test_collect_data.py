@@ -99,7 +99,7 @@ class EndToEndTestCase(TestCase):
 
         :return:
         """
-        collect_popular_tmdb_series_data("tmdb-popular-series", self.api_key, self.kafka_brokers, self.schema_registry)
+        collect_popular_tmdb_series_data(self.api_key, self.kafka_brokers, self.schema_registry)
         self.item_metadata_consumer.subscribe(["metadata"])
         self.item_scores_consumer.subscribe(["popularity"])
 
@@ -112,7 +112,7 @@ class EndToEndTestCase(TestCase):
 
         :return:
         """
-        collect_movielens_100k_data("movielens-100k", self.api_key, self.kafka_brokers, self.schema_registry)
+        # collect_movielens_100k_data(self.api_key, self.kafka_brokers, self.schema_registry)
         self.user_interaction_consumer.subscribe(["user-interaction"])
         self.item_metadata_consumer.subscribe(["metadata"])
 

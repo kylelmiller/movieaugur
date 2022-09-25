@@ -1,0 +1,8 @@
+confluent-kafka
+flask
+grpcio-tools
+gunicorn[eventlet]
+jsonschema
+wheel
+# dev/tests
+requests

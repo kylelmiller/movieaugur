@@ -37,6 +37,7 @@ black:
 pylint: clean
 	pylint src/popularityservice/
 	pylint tests/unit
+	pylint tests/e2e
 
 clean: down
 	find . -name *_pb2*.py -exec rm -f {} \;

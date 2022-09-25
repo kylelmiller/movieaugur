@@ -117,7 +117,7 @@ class MovieLensProvider(AbstractInteractionProvider, ABC):
     def get_interactions(self) -> Generator[UserInteraction, None, None]:
         for _, row in (self.ratings_df.join(self.links_df, how="inner")).iterrows():
             yield UserInteraction(
-                user_id=row["userId"], item_id=row["tmdbId"], type="movie", timestamp=row["timestamp"]
+                user_id=row["userId"], item_id=row["tmdbId"], object_type="movie", timestamp=row["timestamp"]
             )
 
 

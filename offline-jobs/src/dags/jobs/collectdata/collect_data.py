@@ -2,6 +2,8 @@
 Entry point for jobs with collect data and then passes that data into the system
 """
 import logging
+import os
+
 from jobs.collectdata.providers import (
     AbstractInteractionProvider,
     AbstractMetadataProvider,

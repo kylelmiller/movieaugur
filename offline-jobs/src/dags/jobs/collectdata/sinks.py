@@ -115,5 +115,7 @@ class KafkaPopularitySink(KafkaSink):
         self.popularity_name = f"popular-{popularity_name}"
 
     def write(self, value: Optional[ItemScores]) -> None:
-        self.kafka_producer.produce(topic=self.topic, key=self.popularity_name, value=None if value is None else MessageToJson(value))
+        self.kafka_producer.produce(
+            topic=self.topic, key=self.popularity_name, value=None if value is None else MessageToJson(value)
+        )
         self.kafka_producer.poll(0)

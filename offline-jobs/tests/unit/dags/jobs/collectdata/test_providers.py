@@ -108,8 +108,8 @@ class MovieLens100kProviderTests(TestCase):
         source = MovieLens100kProviderTests.TestMovieLensProvider()
         self.assertEqual(
             [
-                UserInteraction(user_id="1", item_id="4", type="movie", timestamp=100),
-                UserInteraction(user_id="2", item_id="6", type="movie", timestamp=102),
+                UserInteraction(user_id="1", item_id="4", object_type="movie", timestamp=100),
+                UserInteraction(user_id="2", item_id="6", object_type="movie", timestamp=102),
             ],
             list(source.get_interactions()),
         )

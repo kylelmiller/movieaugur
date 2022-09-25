@@ -42,38 +42,40 @@ class FlaskAppTestCase(TestCase):
         )
 
     def setUp(self) -> None:
-        self.admin_client.create_topics(
-            [NewTopic("metadata", 1, 1), NewTopic("popularity", 1, 1)]
-        )
+        self.admin_client.create_topics([NewTopic("metadata", 1, 1), NewTopic("popularity", 1, 1)])
 
         self.kafka_popularity_producer.produce(
             "popularity",
             key="popular-movie",
-            value=MessageToJson(ItemScores(
-                item_scores=[
-                    ItemScore(id="0", object_type="movie"),
-                    ItemScore(id="1", object_type="movie"),
-                    ItemScore(id="2", object_type="movie"),
-                ]
-            )),
+            value=MessageToJson(
+                ItemScores(
+                    item_scores=[
+                        ItemScore(id="0", object_type="movie"),
+                        ItemScore(id="1", object_type="movie"),
+                        ItemScore(id="2", object_type="movie"),
+                    ]
+                )
+            ),
         )
 
         self.kafka_popularity_producer.produce(
             "popularity",
             key="popular-series",
-            value=MessageToJson(ItemScores(
-                item_scores=[
-                    ItemScore(id="1", object_type="series"),
-                    ItemScore(id="2", object_type="series"),
-                ]
-            )),
+            value=MessageToJson(
+                ItemScores(
+                    item_scores=[
+                        ItemScore(id="1", object_type="series"),
+                        ItemScore(id="2", object_type="series"),
+                    ]
+                )
+            ),
         )
         self.kafka_popularity_producer.poll(0)
         self.kafka_popularity_producer.flush(timeout=5)
 
         for id, object_type in (("0", "movie"), ("1", "movie"), ("0", "series"), ("1", "series"), ("2", "series")):
             self.kafka_metadata_producer.produce(
-                topic="metadata", key=f"#ID#{id}#TYPE#{object_type}" ,value=ItemMetadata(id=id, object_type=object_type)
+                topic="metadata", key=f"#ID#{id}#TYPE#{object_type}", value=ItemMetadata(id=id, object_type=object_type)
             )
         self.kafka_metadata_producer.poll(0)
         self.kafka_metadata_producer.flush(timeout=5)

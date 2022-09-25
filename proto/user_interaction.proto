@@ -5,6 +5,6 @@ option java_package = "com.movieaugur.events.userinteraction.v1";
 message UserInteraction {
   string user_id = 1;
   string item_id = 2;
-  string type = 3;
+  string object_type = 3;
   int64 timestamp = 4;
 }

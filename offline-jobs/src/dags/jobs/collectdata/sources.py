@@ -97,8 +97,8 @@ class TMDBMetadataSource(AbstractMetadataSource):
                     self.http_request,
                     [url % (item_id, self.api_key) for url in (self.asset_url, self.keyword_url, self.cast_url)],
                 ).get(TIMEOUT_DURATION)
-        except TimeoutError:
-            logging.warning("API call for TMDB asset id %s was not successful", item_id)
+        except Exception as ex:
+            logging.warning("API call for TMDB asset id %s was not successful: %s", item_id, ex)
             return None
 
         if not all(response.ok for response in (asset_response, keyword_response, cast_response)):
