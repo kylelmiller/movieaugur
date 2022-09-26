@@ -2,9 +2,13 @@ syntax = "proto3";
 package metadata.v1;
 option java_package = "com.movieaugur.service.metadata.v1";
 
-message MetadataRequest {
-  repeated string ids = 1;
+message ItemMetadataRequest {
+  string id = 1;
   string object_type = 2;
+}
+
+message ItemsMetadataRequest {
+  repeated ItemMetadataRequest item_requests = 1;
 }
 
 message ItemMetadata {
@@ -23,5 +27,5 @@ message ItemsMetadata {
 }
 
 service Metadata {
-  rpc GetMetadata (MetadataRequest) returns (ItemsMetadata);
+  rpc GetMetadata (ItemsMetadataRequest) returns (ItemsMetadata);
 }

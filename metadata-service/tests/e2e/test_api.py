@@ -12,7 +12,7 @@ from confluent_kafka.serialization import StringSerializer
 from pymongo import MongoClient
 
 from metadataservice import config
-from metadata_pb2 import ItemMetadata, MetadataRequest
+from metadata_pb2 import ItemMetadata, ItemMetadataRequest, ItemsMetadataRequest
 from metadata_pb2_grpc import MetadataStub
 
 
@@ -50,8 +50,11 @@ class TestGetMetadata(unittest.TestCase):
         self.kafka_producer.poll(0)
         self.kafka_producer.flush()
 
-    def get_metadata_from_grpc_service(self, object_type: str, ids: List[str]):
-        return self.grpc_stub.GetMetadata(MetadataRequest(object_type=object_type, ids=ids), timeout=1.0).metadata
+    def get_metadata_from_grpc_service(self, item_requests: List[Dict[str, str]]):
+        return self.grpc_stub.GetMetadata(
+            ItemsMetadataRequest(item_requests=[ItemMetadataRequest(**item_request) for item_request in item_requests]),
+            timeout=1.0,
+        ).metadata
 
     def test_happy_path(self):
         movie_item_metadata = ItemMetadata(
@@ -75,8 +78,22 @@ class TestGetMetadata(unittest.TestCase):
         self.add_item_metadata(series_item_metadata)
 
         time.sleep(5)
-        self.assertEqual([movie_item_metadata], list(self.get_metadata_from_grpc_service("movie", ["found"])))
-        self.assertEqual([series_item_metadata], list(self.get_metadata_from_grpc_service("series", ["found"])))
+        self.assertEqual(
+            [movie_item_metadata, series_item_metadata],
+            list(
+                self.get_metadata_from_grpc_service(
+                    [{"id": "found", "object_type": "movie"}, {"id": "found", "object_type": "series"}]
+                )
+            ),
+        )
+        self.assertEqual(
+            [series_item_metadata, movie_item_metadata],
+            list(
+                self.get_metadata_from_grpc_service(
+                    [{"id": "found", "object_type": "series"}, {"id": "found", "object_type": "movie"}]
+                )
+            ),
+        )
 
     def test_object_type_must_match(self):
         item_metadata = ItemMetadata(
@@ -89,10 +106,10 @@ class TestGetMetadata(unittest.TestCase):
         )
         self.add_item_metadata(item_metadata)
         time.sleep(5)
-        self.assertEqual(0, len(self.get_metadata_from_grpc_service("series", ["movie_item"])))
+        self.assertEqual(0, len(self.get_metadata_from_grpc_service([{"id": "movie_item", "object_type": "series"}])))
 
     def test_missing_metadata(self):
-        self.assertEqual(0, len(self.get_metadata_from_grpc_service("movie", ["not_found"])))
+        self.assertEqual(0, len(self.get_metadata_from_grpc_service([{"id": "not_found", "object_type": "movie"}])))
 
     def test_two_exists_one_missing(self):
         items_metadata = [
@@ -117,7 +134,16 @@ class TestGetMetadata(unittest.TestCase):
             self.add_item_metadata(item_metadata)
         time.sleep(5)
         self.assertEqual(
-            items_metadata, list(self.get_metadata_from_grpc_service("movie", ["found_1", "found_2", "not_found"]))
+            items_metadata,
+            list(
+                self.get_metadata_from_grpc_service(
+                    [
+                        {"id": "found_1", "object_type": "movie"},
+                        {"id": "found_2", "object_type": "movie"},
+                        {"id": "not_found", "object_type": "movie"},
+                    ]
+                )
+            ),
         )
 
 

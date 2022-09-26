@@ -28,6 +28,4 @@ class PopularityService:
         popular_item_scores = self.popularity_repository.get(object_type)
         if popular_item_scores is None:
             return None
-        return self.metadata_repository.get(
-            [popular_item_score.id for popular_item_score in popular_item_scores.item_scores], object_type
-        )
+        return self.metadata_repository.get(popular_item_scores.item_scores)

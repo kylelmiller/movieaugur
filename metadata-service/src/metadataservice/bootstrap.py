@@ -55,7 +55,7 @@ async def configure_kafka_connect(config) -> None:
                             "collection": "metadata",
                             "document.id.strategy.overwrite.existing": True,
                             "delete.on.null.values": True,
-                            "topics": f"metadata",
+                            "topics": "metadata",
                             "key.converter": "org.apache.kafka.connect.storage.StringConverter",
                             "value.converter": "io.confluent.connect.protobuf.ProtobufConverter",
                             "value.converter.schema.registry.url": config.get_schema_registry_url(),

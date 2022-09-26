@@ -2,6 +2,6 @@ from setuptools import setup
 
 setup(
     name="metadataservice",
-    version="0.1",
+    version="1.0.0",
     packages=["metadataservice"],
 )

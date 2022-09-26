@@ -32,7 +32,7 @@ class RedisPopularityRepository(AbstractPopularityRepository):
         self.redis_client = redis_client
 
     def get(self, object_type: str) -> Optional[ItemScores]:
-        cached_scores = self.redis_client.get(f"popular-{object_type}")
-        if cached_scores is None:
+        popular_item_scores = self.redis_client.get(f"popular-{object_type}")
+        if popular_item_scores is None:
             return None
-        return Parse(cached_scores, ItemScores())
+        return Parse(popular_item_scores, ItemScores())

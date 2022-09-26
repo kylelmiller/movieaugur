@@ -1,5 +1,7 @@
 """The Flask entrypoint"""
 import logging
+from http import HTTPStatus
+
 from flask import Flask
 from google.protobuf.json_format import MessageToDict
 
@@ -19,8 +21,8 @@ def get_popularity_endpoint(object_type: str):
     """
     items_metadata = popularity_service.get_popularity(object_type)
     if not items_metadata:
-        return "not found", 404
-    return [MessageToDict(metadata, preserving_proto_field_name=True) for metadata in items_metadata.metadata], 200
+        return "not found", HTTPStatus.NOT_FOUND
+    return [MessageToDict(metadata, preserving_proto_field_name=True) for metadata in items_metadata.metadata], HTTPStatus.OK
 
 
 if __name__ == "__main__":

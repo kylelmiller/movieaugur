@@ -5,10 +5,12 @@ import grpc
 from grpc import ServicerContext
 from concurrent import futures
 
+from google.protobuf.json_format import MessageToDict
+
 from metadataservice import config
 from metadataservice.bootstrap import bootstrap
 from metadataservice.adapters.repository import AbstractRepository
-from metadataservice.entrypoints.metadata_pb2 import ItemMetadata, ItemsMetadata, MetadataRequest
+from metadataservice.entrypoints.metadata_pb2 import ItemMetadata, ItemsMetadata, ItemsMetadataRequest
 from metadataservice.entrypoints.metadata_pb2_grpc import MetadataServicer, add_MetadataServicer_to_server
 
 
@@ -20,7 +22,7 @@ class MetadataService(MetadataServicer):
     def __init__(self, repository: AbstractRepository):
         self.repository = repository
 
-    def GetMetadata(self, request: MetadataRequest, context: ServicerContext) -> ItemsMetadata:
+    def GetMetadata(self, request: ItemsMetadataRequest, context: ServicerContext) -> ItemsMetadata:
         """
         Takes a metadata request of ids and returns the metadata for that request
 
@@ -28,12 +30,15 @@ class MetadataService(MetadataServicer):
         :param context: The request context
         :return: The metadata for the found ids
         """
-        if len(request.ids) == 0:
-            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Ids are required.")
+        if len(request.item_requests) == 0:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Item requests are required.")
 
         return ItemsMetadata(
             metadata=[
-                ItemMetadata(**item_data) for item_data in self.repository.get(list(request.ids), request.object_type)
+                ItemMetadata(**item_data)
+                for item_data in self.repository.get(
+                    MessageToDict(request, preserving_proto_field_name=True)["item_requests"]
+                )
             ]
         )
 

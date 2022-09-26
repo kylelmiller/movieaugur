@@ -1,21 +1,21 @@
 version: "3"
 services:
-  popularity-service:
-    build: .
-    image: popularity-service
-    depends_on:
-      - redis
-      - metadata-service
-      - kafka-connect
-    ports:
-      - "5015:5015"
-    entrypoint:
-      - /opt/venv/bin/python
-      - -m
-      - gunicorn
-      - popularityservice.entrypoints.wsgi:app
-    environment:
-      GUNICORN_CMD_ARGS: -b 0.0.0.0:5015 --workers 1 --threads 4 --log-level info --timeout 600
+#  popularity-service:
+#    build: .
+#    image: popularity-service
+#    depends_on:
+#      - redis
+#      - metadata-service
+#      - kafka-connect
+#    ports:
+#      - "5015:5015"
+#    entrypoint:
+#      - /opt/venv/bin/python
+#      - -m
+#      - gunicorn
+#      - popularityservice.entrypoints.wsgi:app
+#    environment:
+#      GUNICORN_CMD_ARGS: -b 0.0.0.0:5015 --workers 1 --threads 4 --log-level info --timeout 600
   redis:
     image: redis:6.2.6 # port 6379
     ports:

@@ -2,7 +2,7 @@
 import logging
 from http import HTTPStatus
 
-from flask import Flask, jsonify, request
+from flask import Flask, request
 from google.protobuf.json_format import ParseError
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
@@ -40,14 +40,14 @@ def post_events():
     try:
         validate(request.get_json(), request_schema)
     except ValidationError as ex:
-        return jsonify(success=False, message=ex.message), HTTPStatus.BAD_REQUEST
+        return ex.message, HTTPStatus.BAD_REQUEST
     try:
         event_service.write_user_interactions(post_data)
     except ValueError as ex:
-        return jsonify(success=False, message=str(ex)), HTTPStatus.BAD_REQUEST
+        return str(ex), HTTPStatus.BAD_REQUEST
     except ParseError as ex:
-        return jsonify(success=False, message="Unable to parse json object."), HTTPStatus.BAD_REQUEST
-    return jsonify(success=True), HTTPStatus.OK
+        return "Unable to parse json object.", HTTPStatus.BAD_REQUEST
+    return "success", HTTPStatus.OK
 
 
 if __name__ == "__main__":
