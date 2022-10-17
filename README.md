@@ -26,6 +26,7 @@ To support these use cases there are:
 
 What is not here:
 * User authentication
+* Observability/Metrics
 * More like this
   * Given an item id and object type return a list of item ids that are similar to that item
   * This could be added with:
