@@ -18,7 +18,9 @@ from recommendationservice.metadata_pb2 import ItemMetadata
 class FlaskAppTestCase(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.recommendation_service_url = os.environ.get("RECOMMENDATION_SERVICE_URL", "http://recommendation-service:5035")
+        cls.recommendation_service_url = os.environ.get(
+            "RECOMMENDATION_SERVICE_URL", "http://recommendation-service:5035"
+        )
         kafka_brokers = os.environ.get("KAFKA_BROKERS", "kafka:9092")
         cls.admin_client = AdminClient({"bootstrap.servers": kafka_brokers})
 
@@ -95,10 +97,14 @@ class FlaskAppTestCase(TestCase):
         self.assertEqual([{"id": "0", "object_type": "movie"}, {"id": "1", "object_type": "movie"}], result.json())
 
     def test_no_recommendations(self):
-        result = requests.get(f"{self.recommendation_service_url}/recommendations/DOES_NOT_EXIST/users/user_1", timeout=5)
+        result = requests.get(
+            f"{self.recommendation_service_url}/recommendations/DOES_NOT_EXIST/users/user_1", timeout=5
+        )
         self.assertFalse(result.ok)
 
-        result = requests.get(f"{self.recommendation_service_url}/recommendations/default/users/DOES_NOT_EXIST", timeout=5)
+        result = requests.get(
+            f"{self.recommendation_service_url}/recommendations/default/users/DOES_NOT_EXIST", timeout=5
+        )
         self.assertFalse(result.ok)
 
     def test_switch_recommendations(self):
@@ -111,4 +117,11 @@ class FlaskAppTestCase(TestCase):
 
         result = requests.get(f"{self.recommendation_service_url}/recommendations/default/users/user_1", timeout=5)
         self.assertTrue(result.ok)
-        self.assertEqual([{"id": "0", "object_type": "series"}, {"id": "1", "object_type": "series"}, {"id": "2", "object_type": "series"}], result.json())
+        self.assertEqual(
+            [
+                {"id": "0", "object_type": "series"},
+                {"id": "1", "object_type": "series"},
+                {"id": "2", "object_type": "series"},
+            ],
+            result.json(),
+        )
