@@ -1,0 +1,8 @@
+flask
+grpcio-tools
+gunicorn[eventlet]
+redis
+requests
+wheel
+# dev/tests
+confluent-kafka

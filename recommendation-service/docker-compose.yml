@@ -1,0 +1,101 @@
+version: "3"
+services:
+  recommendation-service:
+    build: .
+    image: recommendation-service
+    depends_on:
+      - redis
+      - metadata-service
+      - kafka-connect
+    ports:
+      - "5035:5035"
+    entrypoint:
+      - /opt/venv/bin/python
+      - -m
+      - gunicorn
+      - recommendationservice.entrypoints.wsgi:app
+    environment:
+      GUNICORN_CMD_ARGS: -b 0.0.0.0:5035 --workers 1 --threads 4 --log-level info --timeout 600
+  redis:
+    image: redis:6.2.6 # port 6379
+    ports:
+      - "6379:6379"
+  metadata-service:
+    build: ../metadata-service
+    image: metadata-service
+    depends_on:
+      - mongodb
+      - kafka-connect
+    entrypoint:
+      - python
+      - metadataservice/entrypoints/grpc_app.py
+    ports:
+      - "5005:5005"
+  mongodb:
+    image: mongo:5.0.10
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data_container:/data/db
+  kafka-connect:
+    build: ../kafka-connect
+    image: kafka-connect
+    depends_on:
+      - kafka
+      - schema-registry
+    ports:
+      - "18083:18083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 18083
+      CONNECT_GROUP_ID: connect
+      CONNECT_PRODUCER_COMPRESSION_TYPE: lz4
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.protobuf.ProtobufConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8082
+      CONNECT_CONFIG_STORAGE_TOPIC: connect_config
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_TOPIC: connect_offset
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: connect_status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+  kafka:
+    image: confluentinc/cp-kafka:6.2.6
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.2.6
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+  schema-registry:
+    image: confluentinc/cp-schema-registry:6.2.6
+    hostname: schema-registry
+    depends_on:
+      - zookeeper
+      - kafka
+    ports:
+      - "8082:8082"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8082
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
+
+volumes:
+  mongodb_data_container:
