@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional
 
 import requests
-from jobs.collectdata.metadata_pb2 import ItemMetadata
+from jobs.shared.metadata_pb2 import ItemMetadata
 
 
 TIMEOUT_DURATION = 5

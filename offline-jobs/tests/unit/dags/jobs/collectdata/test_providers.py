@@ -6,12 +6,13 @@ import json
 from unittest import TestCase
 from typing import Any
 
-from jobs.collectdata.item_score_pb2 import ItemScore, ItemScores
-from jobs.collectdata.user_interaction_pb2 import UserInteraction
-from jobs.collectdata.metadata_pb2 import ItemMetadata
+from pandas import DataFrame
+
 from jobs.collectdata.providers import MovieLens100kProvider, TMDBPopularMovieProvider, TMDBPopularSeriesProvider
 from jobs.collectdata.sources import AbstractMetadataSource
-from pandas import DataFrame
+from jobs.shared.item_score_pb2 import ItemScore, ItemScores
+from jobs.shared.user_interaction_pb2 import UserInteraction
+from jobs.shared.metadata_pb2 import ItemMetadata
 
 
 class TestMetadataSource(AbstractMetadataSource):

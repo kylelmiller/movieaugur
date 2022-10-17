@@ -1,5 +1,6 @@
 apache-airflow==2.3.4
 confluent-kafka==1.9.0
+implicit==0.6.1
 # Airflow
 APScheduler==3.6.3
 Authlib==0.15.5

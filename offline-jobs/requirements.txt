@@ -1,5 +1,6 @@
 apache-airflow
 confluent-kafka
 cryptography
+implicit
 pandas
 requests

@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from grpc import insecure_channel
 from popularityservice.item_score_pb2 import ItemScore
-from popularityservice.metadata_pb2 import ItemsMetadata, ItemMetadataRequest
+from popularityservice.metadata_pb2 import ItemsMetadata, ItemMetadataRequest, ItemsMetadataRequest
 from popularityservice.metadata_pb2_grpc import MetadataStub
 
 
@@ -35,9 +35,10 @@ class MetadataServiceMetadataRespository(AbstractMetadataRepository):
 
     def get(self, item_scores: List[ItemScore]) -> Optional[ItemsMetadata]:
         return self.grpc_stub.GetMetadata(
-            ItemsMetadata(
+            ItemsMetadataRequest(
                 item_requests=[
-                    ItemMetadataRequest(id=item_score.id, object_type=item_score.object_type) for item_score in item_scores
+                    ItemMetadataRequest(id=item_score.id, object_type=item_score.object_type)
+                    for item_score in item_scores
                 ]
             ),
             timeout=1.0,

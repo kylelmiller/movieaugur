@@ -1,2 +1,5 @@
+-r event-service/requirements.txt
 -r metadata-service/requirements.txt
 -r offline-jobs/requirements.txt
+-r popularity-service/requirements.txt
+-r recommendation-service/requirements.txt

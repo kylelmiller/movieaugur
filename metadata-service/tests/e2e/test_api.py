@@ -35,6 +35,7 @@ class TestGetMetadata(unittest.TestCase):
                     SchemaRegistryClient({"url": config.get_schema_registry_url()}),
                     {"use.deprecated.format": False},
                 ),
+                "linger.ms": 500,
             }
         )
 
@@ -45,7 +46,9 @@ class TestGetMetadata(unittest.TestCase):
 
     def add_item_metadata(self, item_metadata: ItemMetadata) -> None:
         self.kafka_producer.produce(
-            topic=f"metadata", key=f"#ID#{item_metadata.id}#TYPE#{item_metadata.object_type}", value=item_metadata
+            topic=f"metadata",
+            key="-".join(["id", item_metadata.id, "type", item_metadata.object_type]),
+            value=item_metadata,
         )
         self.kafka_producer.poll(0)
         self.kafka_producer.flush()

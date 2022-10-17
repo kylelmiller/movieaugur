@@ -26,3 +26,13 @@ ids, collects the TMDB metadata for those ids and sends the metadata
 to Kafka.
 
 Runs daily to pull the latest popular tv series.
+
+### Build Recommendation Model
+Reads from the user interactions Kafka topic, creates a recommendation model and then writes the results to Kafka. I
+went with iALS based on the results in the paper: [Revisiting the Performance of iALS on Item Recommendation Benchmarks](https://arxiv.org/abs/2110.14037).
+It's fast and the results are competitive. The algorithm is completely decoupled from the service so if SotA does start
+to pull away it's easy to swap out. The results are written to Kafka and the eventual consuming service just reads the 
+recommendation results from Redis.
+
+It would be better if all of the input data wasn't stored in Kafka and instead in s3 or some other distributed storage
+but this is fine for now.

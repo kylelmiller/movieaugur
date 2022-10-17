@@ -13,10 +13,10 @@ from typing import Callable, Generator, Iterable
 import pandas as pd
 import requests
 from pandas import DataFrame
-from jobs.collectdata.item_score_pb2 import ItemScore, ItemScores
-from jobs.collectdata.metadata_pb2 import ItemMetadata
-from jobs.collectdata.user_interaction_pb2 import UserInteraction
 from jobs.collectdata.sources import AbstractMetadataSource
+from jobs.shared.item_score_pb2 import ItemScore, ItemScores
+from jobs.shared.metadata_pb2 import ItemMetadata
+from jobs.shared.user_interaction_pb2 import UserInteraction
 
 
 class AbstractMetadataProvider(ABC):
@@ -63,17 +63,12 @@ class MovieLensProvider(AbstractInteractionProvider, ABC):
     def __init__(self, metadata_source: AbstractMetadataSource):
         super().__init__(metadata_source)
         self.ratings_df, self.movies_df, self.links_df = self._get_data()
-        self.ratings_df = (
-            self.ratings_df[self.ratings_df["rating"] >= self.RATING_INTERACTION_THRESHOLD]
-            .set_index("movieId")
-            .astype({"userId": "str"})
+        self.ratings_df = self.ratings_df[self.ratings_df["rating"] >= self.RATING_INTERACTION_THRESHOLD].astype(
+            {"userId": "str"}
         )
-        self.movies_df = self.movies_df.set_index("movieId")
+        self.movies_df = self.movies_df
         self.links_df = (
-            self.links_df[~self.links_df["tmdbId"].isna()]
-            .set_index("movieId")
-            .astype({"tmdbId": "int"})
-            .astype({"tmdbId": "str"})
+            self.links_df[~self.links_df["tmdbId"].isna()].astype({"tmdbId": "int"}).astype({"tmdbId": "str"})
         )
 
     @staticmethod
@@ -111,11 +106,11 @@ class MovieLensProvider(AbstractInteractionProvider, ABC):
             yield pd.read_csv(os.path.join(full_extracted_path, filename))
 
     def get_items_metadata(self) -> Generator[ItemMetadata, None, None]:
-        df = self.movies_df.join(self.links_df, how="inner").astype({"tmdbId": "str"})
+        df = self.movies_df.merge(self.links_df, how="inner", on="movieId").astype({"tmdbId": "str"})
         return self.metadata_source.get_items_metadata(set(df["tmdbId"]))
 
     def get_interactions(self) -> Generator[UserInteraction, None, None]:
-        for _, row in (self.ratings_df.join(self.links_df, how="inner")).iterrows():
+        for _, row in (self.ratings_df.merge(self.links_df, how="inner", on="movieId")).iterrows():
             yield UserInteraction(
                 user_id=row["userId"], item_id=row["tmdbId"], object_type="movie", timestamp=row["timestamp"]
             )
@@ -129,6 +124,16 @@ class MovieLens100kProvider(MovieLensProvider):
     @staticmethod
     def _get_url():
         return "https://files.grouplens.org/datasets/movielens/ml-latest-small.zip"
+
+
+class MovieLensLatestFullProvider(MovieLensProvider):
+    """
+    Provides the latest full MovieLens dataset
+    """
+
+    @staticmethod
+    def _get_url():
+        return "https://files.grouplens.org/datasets/movielens/ml-latest.zip"
 
 
 class TMDBPopularContentProvider(AbstractMetadataProvider, ABC):

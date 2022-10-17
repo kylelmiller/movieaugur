@@ -7,7 +7,7 @@ from unittest import TestCase
 from typing import Any
 
 from jobs.collectdata.sources import TMDBMovieMetadataSource
-from jobs.collectdata.metadata_pb2 import ItemMetadata
+from jobs.shared.metadata_pb2 import ItemMetadata
 
 
 # pylint: disable=invalid-name

@@ -1,6 +1,9 @@
 flask
 grpcio-tools
 gunicorn[eventlet]
+implicit
 redis
 requests
 wheel
+# dev/tests
+confluent-kafka

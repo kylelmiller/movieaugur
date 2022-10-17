@@ -7,9 +7,9 @@ from confluent_kafka import DeserializingConsumer
 from confluent_kafka.schema_registry.protobuf import ProtobufDeserializer
 from confluent_kafka.serialization import StringDeserializer
 
-from metadata_pb2 import ItemMetadata
-from sinks import KafkaItemMetadataSink, KafkaUserInteractionSink
-from user_interaction_pb2 import UserInteraction
+from jobs.shared.metadata_pb2 import ItemMetadata
+from jobs.shared.sinks import KafkaItemMetadataSink, KafkaUserInteractionSink
+from jobs.shared.user_interaction_pb2 import UserInteraction
 
 
 class KafkaSinkTestCase(TestCase):

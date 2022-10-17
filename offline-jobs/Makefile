@@ -8,8 +8,7 @@ build: grpc
 	docker-compose build
 
 grpc:
-	python -m grpc_tools.protoc -I../proto --python_out=./src/dags/jobs/collectdata ../proto/*.proto
-	python -m grpc_tools.protoc -I../proto --python_out=./tests/integration/dags/jobs/collectdata ../proto/*.proto
+	python -m grpc_tools.protoc -I../proto --python_out=./src/dags/jobs/shared ../proto/*.proto
 
 up:
 	docker-compose up -d

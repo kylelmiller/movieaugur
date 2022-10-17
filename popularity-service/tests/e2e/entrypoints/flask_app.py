@@ -30,6 +30,7 @@ class FlaskAppTestCase(TestCase):
                     SchemaRegistryClient({"url": config.get_schema_registry_url()}),
                     {"use.deprecated.format": False},
                 ),
+                "linger.ms": 500,
             }
         )
 
@@ -38,6 +39,7 @@ class FlaskAppTestCase(TestCase):
                 "bootstrap.servers": kafka_brokers,
                 "key.serializer": StringSerializer(),
                 "value.serializer": StringSerializer(),
+                "linger.ms": 500,
             }
         )
 

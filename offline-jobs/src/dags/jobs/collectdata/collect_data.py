@@ -2,7 +2,6 @@
 Entry point for jobs with collect data and then passes that data into the system
 """
 import logging
-import os
 
 from jobs.collectdata.providers import (
     AbstractInteractionProvider,
@@ -10,10 +9,11 @@ from jobs.collectdata.providers import (
     TMDBPopularContentProvider,
     TMDBPopularMovieProvider,
     TMDBPopularSeriesProvider,
+    MovieLensLatestFullProvider,
     MovieLens100kProvider,
 )
-from jobs.collectdata.sinks import KafkaItemMetadataSink, KafkaPopularitySink, KafkaUserInteractionSink, KafkaSink
 from jobs.collectdata.sources import TMDBMovieMetadataSource, TMDBSeriesMetadataSource
+from jobs.shared.sinks import KafkaItemMetadataSink, KafkaPopularitySink, KafkaUserInteractionSink, KafkaSink
 
 
 def run_interaction_job(interaction_provider: AbstractInteractionProvider, sink: KafkaSink) -> None:
@@ -67,6 +67,24 @@ def collect_movielens_100k_data(tmdb_api_key: str, kafka_brokers: str, schema_re
     :return:
     """
     provider = MovieLens100kProvider(TMDBMovieMetadataSource(tmdb_api_key))
+    # Write the collect item metadata to kafka
+    with KafkaItemMetadataSink(kafka_brokers, schema_registry) as sink:
+        run_metadata_job(provider, sink)
+    # write the interaction data to kafka
+    with KafkaUserInteractionSink(kafka_brokers, schema_registry) as sink:
+        run_interaction_job(provider, sink)
+
+
+def collect_full_movielens_data(tmdb_api_key: str, kafka_brokers: str, schema_registry: str) -> None:
+    """
+    Parses the pass arguments and runs the specified data collection job.
+
+    :param tmdb_api_key: tmdb developer api key
+    :param kafka_brokers: kafka brokers
+    :param schema_registry: schema registry
+    :return:
+    """
+    provider = MovieLensLatestFullProvider(TMDBMovieMetadataSource(tmdb_api_key))
     # Write the collect item metadata to kafka
     with KafkaItemMetadataSink(kafka_brokers, schema_registry) as sink:
         run_metadata_job(provider, sink)

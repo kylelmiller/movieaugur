@@ -22,7 +22,9 @@ def get_popularity_endpoint(object_type: str):
     items_metadata = popularity_service.get_popularity(object_type)
     if not items_metadata:
         return "not found", HTTPStatus.NOT_FOUND
-    return [MessageToDict(metadata, preserving_proto_field_name=True) for metadata in items_metadata.metadata], HTTPStatus.OK
+    return [
+        MessageToDict(metadata, preserving_proto_field_name=True) for metadata in items_metadata.metadata
+    ], HTTPStatus.OK
 
 
 if __name__ == "__main__":

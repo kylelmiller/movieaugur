@@ -1,21 +1,21 @@
 version: "3"
 services:
-#  popularity-service:
-#    build: .
-#    image: popularity-service
-#    depends_on:
-#      - redis
-#      - metadata-service
-#      - kafka-connect
-#    ports:
-#      - "5015:5015"
-#    entrypoint:
-#      - /opt/venv/bin/python
-#      - -m
-#      - gunicorn
-#      - popularityservice.entrypoints.wsgi:app
-#    environment:
-#      GUNICORN_CMD_ARGS: -b 0.0.0.0:5015 --workers 1 --threads 4 --log-level info --timeout 600
+  popularity-service:
+    build: .
+    image: popularity-service
+    depends_on:
+      - redis
+      - metadata-service
+      - kafka-connect
+    ports:
+      - "5015:5015"
+    entrypoint:
+      - /opt/venv/bin/python
+      - -m
+      - gunicorn
+      - popularityservice.entrypoints.wsgi:app
+    environment:
+      GUNICORN_CMD_ARGS: -b 0.0.0.0:5015 --workers 1 --threads 4 --log-level info --timeout 600
   redis:
     image: redis:6.2.6 # port 6379
     ports:
@@ -76,6 +76,11 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "broker:9092", "--list" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
   zookeeper:
     image: confluentinc/cp-zookeeper:6.2.6
     hostname: zookeeper
@@ -96,6 +101,11 @@ services:
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8082
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "curl", "--output", "/dev/null", "--silent", "--head", "--fail", "http://schema-registry:8082/subjects"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
 volumes:
   mongodb_data_container:

@@ -66,6 +66,7 @@ class KafkaUserInteractionRepository(AbstractUserInteractionRepository):
                     ),
                     conf={"use.deprecated.format": False},
                 ),
+                "linger.ms": 500,
             }
         )
 

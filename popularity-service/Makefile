@@ -25,7 +25,7 @@ unit-tests: grpc
 	PYTHONPATH=./src:./src/popularityservice python -m unittest discover tests/unit/
 
 e2e-tests: up
-	docker-compose run --rm --no-deps -e PYTHONPATH=/tests/e2e --entrypoint="python -m unittest flask_app" popularity-service
+	docker-compose run --rm --no-deps -e PYTHONPATH=/tests/e2e/entrypoints --entrypoint="python -m unittest flask_app" popularity-service
 	docker-compose down --remove-orphans
 
 logs:

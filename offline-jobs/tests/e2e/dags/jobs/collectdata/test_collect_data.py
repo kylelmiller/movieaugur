@@ -9,10 +9,14 @@ from confluent_kafka import DeserializingConsumer
 from confluent_kafka.schema_registry.protobuf import ProtobufDeserializer
 from confluent_kafka.serialization import StringDeserializer
 
-from collect_data import collect_movielens_100k_data, collect_popular_tmdb_movie_data, collect_popular_tmdb_series_data
-from metadata_pb2 import ItemMetadata
-from user_interaction_pb2 import UserInteraction
-from item_score_pb2 import ItemScores
+from jobs.collectdata.collect_data import (
+    collect_movielens_100k_data,
+    collect_popular_tmdb_movie_data,
+    collect_popular_tmdb_series_data,
+)
+from jobs.shared.metadata_pb2 import ItemMetadata
+from jobs.shared.user_interaction_pb2 import UserInteraction
+from jobs.shared.item_score_pb2 import ItemScores
 
 
 KAFKA_CONSUMER = Any
@@ -76,7 +80,7 @@ class EndToEndTestCase(TestCase):
                 "default.topic.config": {"auto.offset.reset": "smallest"},
                 "bootstrap.servers": cls.kafka_brokers,
                 "key.deserializer": StringDeserializer(),
-                "value.deserializer": ProtobufDeserializer(ItemScores, conf={"use.deprecated.format": False}),
+                "value.deserializer": StringDeserializer(),
             }
         )
 
@@ -112,7 +116,7 @@ class EndToEndTestCase(TestCase):
 
         :return:
         """
-        # collect_movielens_100k_data(self.api_key, self.kafka_brokers, self.schema_registry)
+        collect_movielens_100k_data(self.api_key, self.kafka_brokers, self.schema_registry)
         self.user_interaction_consumer.subscribe(["user-interaction"])
         self.item_metadata_consumer.subscribe(["metadata"])
 
