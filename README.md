@@ -2,9 +2,10 @@
 
 MovieAugur is an asset recommendation system that is a fully distributed microservice with high scalability and 
 elasticity. It currently collects tvseries and movie data and provides popularity and recommendations on those assets.
-It designed in a generic way that enables easily adding other data sources (books, chairs, etc.).
+It designed in a generic way that enables easily adding other data sources (books, chairs, etc.). It uses docker compose
+to spin up the different required services to suppor the application. 
 
-The system supports the following use cases:
+## Supported Use Cases
 * Popularity
 * Recommendations
 
@@ -24,8 +25,18 @@ To support these use cases there are:
 * Kafka Connect
   * Used to copy data from Kafka to the services data stores (MongoDB, Redis) 
 
-What is not here:
-* User authentication
+## What is not here
+* User Authentication
+* Kubernetes
+  * If you are going to take this to production the containers should be managed with something other than
+    docker compose. That could be Kubernetes or a cloud provider's container infrastructure like Elastic Container Services.
+* GET HTTP caching
+  * NGINX isn't configured to cache GET requests. It should be since this system should be very read heavy.
+* Provisioning
+  * There is no config for provisioning resources (Terraform, etc.)
+* Multitenate
+  * It's current written to support a single customer. If you add more and want to keep the data separate that would
+    involve keying the data differently.
 * More like this
   * Given an item id and object type return a list of item ids that are similar to that item
   * This could be added with:
