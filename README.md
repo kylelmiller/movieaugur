@@ -25,20 +25,6 @@ To support these use cases there are:
 * Kafka Connect
   * Used to copy data from Kafka to the services data stores (MongoDB, Redis) 
 
-## What is not here
-* User Authentication
-* Kubernetes
-  * If you are going to take this to production the containers should be managed with something other than
-    docker compose. That could be Kubernetes or a cloud provider's container infrastructure like Elastic Container Services.
-* GET HTTP caching
-  * NGINX isn't configured to cache GET requests. It should be since this system should be very read heavy.
-* Provisioning
-  * There is no config for provisioning resources (Terraform, etc.)
-* Multitenate
-  * It's current written to support a single customer. If you add more and want to keep the data separate that would
-    involve keying the data differently.
-* Observability/Metrics
-
 ## Potential Future Use Cases
 * More like this
   * Given an item id and object type return a list of item ids that are similar to that item
@@ -84,3 +70,17 @@ To support these use cases there are:
     * New offline model
     * New service
     * Kafka connect sink to Redis
+
+## What is not here
+* User Authentication
+* Kubernetes
+  * If you are going to take this to production the containers should be managed with something other than
+    docker compose. That could be Kubernetes or a cloud provider's container infrastructure like Elastic Container Services.
+* GET HTTP caching
+  * NGINX isn't configured to cache GET requests. It should be since this system should be very read heavy.
+* Provisioning
+  * There is no config for provisioning resources (Terraform, etc.)
+* Multitenate
+  * It's current written to support a single customer. If you add more and want to keep the data separate that would
+    involve keying the data differently.
+* Observability/Metrics
