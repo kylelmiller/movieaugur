@@ -37,6 +37,7 @@ To support these use cases there are:
 * Multitenate
   * It's current written to support a single customer. If you add more and want to keep the data separate that would
     involve keying the data differently.
+* Observability/Metrics
 * More like this
   * Given an item id and object type return a list of item ids that are similar to that item
   * This could be added with:
