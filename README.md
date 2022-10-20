@@ -29,14 +29,14 @@ To support these use cases there are:
 * More like this
   * Given an item id and object type return a list of item ids that are similar to that item
   * This could be added with:
-    * New MLT service
-    * ElasticSearch backend
+    * New MLT Flask service
+    * ElasticSearch
     * Kafka connect sink from the item metadata topic
 * User Interaction History
   * What has the user interacted with recently. Could be used to filter out results from other services.
   * This could be added with:
-    * New interaction history service
-    * Postgres backend
+    * New interaction history gRPC service
+    * Postgres
     * Kafka connect sink from user interactions topic
 * Content filtering recommendation model
   * Another way to recommend items. Instead of relying on a collabrative model, this relies on a user's past consumption
@@ -51,8 +51,8 @@ To support these use cases there are:
   * Keeping track of a user's indicated future interests. Like indicating future shows they want to watch or shows they 
     want to be informed there are new episodes for.
   * This could be added with:
-    * New user lists service
-    * Postgres backend
+    * New user lists Flask service
+    * Postgres
 * New Arrival Event System
   * If there is a new item that shows up either through the popularity api or it starts to get user interactions we
     could send an email to users we think or know would like that item. This could be performed by using the item lists
@@ -68,7 +68,7 @@ To support these use cases there are:
   * This could be added with:
     * New DAG
     * New offline model
-    * New service
+    * New Flask service
     * Kafka connect sink to Redis
 
 ## What is not here
