@@ -137,7 +137,7 @@ def create_collect_popular_tmdb_movie_data(shared_config: Dict[str, str]) -> DAG
     return dag
 
 
-collect_movielens100k_data = create_collect_movielens_data(
+collect_movielens100k_data = create_collect_100k_movielens_data(
     Variable.get("shared_config", deserialize_json=True, default_var={})
 )
 collect_popular_tmdb_series_data = create_collect_popular_tmdb_series_data(
